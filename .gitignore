@@ -1,0 +1,8 @@
+> This project is a plain static site, no build step and no dependencies.
+> Nothing here is generated, so only local tooling and OS junk are ignored.
+
+node_modules/
+.agents/
+*.log
+Thumbs.db
+Desktop.ini

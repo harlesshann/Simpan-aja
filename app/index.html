@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SimpanAja</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">S</span>
+    <h1>SimpanAja</h1>
+  </div>
+  <div class="topbar-actions">
+    <span class="total" id="totalCount">0 tersimpan</span>
+    <button id="btnAdd" class="btn btn-primary" type="button">+ Tambah</button>
+    <button id="btnImport" class="btn" type="button">Import</button>
+    <button id="btnExport" class="btn" type="button">Export</button>
+  </div>
+</header>
+
+<p class="local-note" role="note">Data tersimpan lokal di browser ini. Export JSON adalah jalan backup-nya.</p>
+
+<main class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <h2>Koleksi</h2>
+      <button id="btnManageCollections" class="btn btn-quiet" type="button">Kelola</button>
+    </div>
+    <nav id="collectionList" class="collection-list" aria-label="Filter Koleksi"></nav>
+  </aside>
+
+  <section class="content">
+    <div class="search-wrap">
+      <label class="visually-hidden" for="search">Cari bookmark</label>
+      <input id="search" class="search" type="search" placeholder="Cari judul, catatan, command, Koleksi..." autocomplete="off" />
+    </div>
+    <div id="typeChips" class="chips" role="group" aria-label="Filter tipe"></div>
+    <div id="grid" class="grid"></div>
+    <div id="emptyState" class="empty" hidden></div>
+  </section>
+</main>
+
+<input type="file" id="importFile" accept="application/json,.json" hidden />
+
+<dialog id="bookmarkDialog" class="dialog" aria-labelledby="formTitle">
+  <form id="bookmarkForm" class="form" novalidate>
+    <h2 id="formTitle">Tambah bookmark</h2>
+    <div class="field">
+      <label for="fType">Tipe</label>
+      <select id="fType"></select>
+    </div>
+    <div class="field" id="urlRow">
+      <label for="fUrl">URL</label>
+      <input id="fUrl" type="url" inputmode="url" placeholder="https://..." autocomplete="off" />
+    </div>
+    <div class="field" id="commandRow" hidden>
+      <label for="fCommand">Command</label>
+      <textarea id="fCommand" rows="4" spellcheck="false" placeholder="ls -la"></textarea>
+    </div>
+    <div class="field">
+      <label for="fTitle">Judul</label>
+      <input id="fTitle" type="text" maxlength="200" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="fNote">Catatan (opsional)</label>
+      <textarea id="fNote" rows="2"></textarea>
+    </div>
+    <div class="field">
+      <label for="fCollection">Koleksi</label>
+      <select id="fCollection"></select>
+    </div>
+    <div class="field" id="newCollectionRow" hidden>
+      <label for="fNewCollection">Nama Koleksi baru</label>
+      <input id="fNewCollection" type="text" maxlength="80" autocomplete="off" />
+    </div>
+    <p id="formError" class="form-error" hidden></p>
+    <div class="form-actions">
+      <button type="button" id="btnCancelForm" class="btn">Batal</button>
+      <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="collectionsDialog" class="dialog" aria-labelledby="manageTitle">
+  <div class="form">
+    <h2 id="manageTitle">Kelola Koleksi</h2>
+    <div id="collectionManagerList" class="manage-list"></div>
+    <div class="field field-inline">
+      <label class="visually-hidden" for="newCollectionName">Nama Koleksi baru</label>
+      <input id="newCollectionName" type="text" maxlength="80" placeholder="Nama Koleksi baru" />
+      <button type="button" id="btnCreateCollection" class="btn btn-primary">Tambah</button>
+    </div>
+    <p id="collectionError" class="form-error" hidden></p>
+    <div class="form-actions">
+      <button type="button" id="btnCloseCollections" class="btn">Selesai</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="previewPopup" class="preview-popup" role="dialog" aria-modal="false" aria-label="Preview video" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
