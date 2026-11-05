@@ -3,8 +3,8 @@
    offset solid shadows, one loud yellow accent over ink black.
    Identity motif: the 6 type badges stay the only colour system besides the
    accent, they are a real taxonomy the user scans by.
-   Typeface: system stacks only — spec forbids app network calls, so no webfont.
-   Heading/utility face is the monospace stack; body stays sans for readability. */
+   Typeface: system stacks only — thumbnails are images, not webfonts, so still
+   no webfont. Heading/utility face is the monospace stack; body stays sans. */
 
 :root {
   --bg: #ffffff;
@@ -171,10 +171,33 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 
 .card {
   display: flex; flex-direction: column; gap: 10px;
-  padding: 14px; min-width: 0;
+  padding: 14px; min-width: 0; cursor: pointer;
   background: var(--surface); border: var(--bw) solid var(--ink); border-radius: 0;
   box-shadow: var(--shadow);
+  transition: transform .08s, box-shadow .08s, background .08s;
 }
+.card:hover { background: #fffbe6; }
+.card:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
+
+/* ---------- card thumbnail ---------- */
+.card-thumb {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  background: var(--surface-2); border: 2px solid var(--ink); overflow: hidden;
+}
+.card-thumb-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.thumb-favicon .card-thumb-img { object-fit: contain; padding: 20%; background: var(--surface); }
+.thumb-tile {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  font-family: var(--mono); font-size: clamp(26px, 7vw, 40px); font-weight: 800;
+  letter-spacing: .02em; text-transform: uppercase;
+}
+.tile-video { background: var(--t-video-bg); color: var(--t-video-ink); }
+.tile-website { background: var(--t-website-bg); color: var(--t-website-ink); }
+.tile-command { background: var(--t-command-bg); color: var(--t-command-ink); }
+.tile-repo { background: var(--t-repo-bg); color: var(--t-repo-ink); }
+.tile-extension { background: var(--t-extension-bg); color: var(--t-extension-ink); }
+.tile-other { background: var(--t-other-bg); color: var(--t-other-ink); }
+
 .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .card-title { font-family: var(--sans); font-size: 16px; font-weight: 800; line-height: 1.3; letter-spacing: -.01em; text-transform: none; overflow-wrap: anywhere; }
 
@@ -207,9 +230,8 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
   font: 12.5px/1.5 var(--mono); overflow: hidden;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
 }
+.card-meta { margin: 0; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink); }
 .card-date { color: var(--muted); font-family: var(--mono); font-size: 11.5px; margin-top: auto; }
-.card-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; border-top: var(--bw) solid var(--ink); }
-.card-actions .btn { flex: 1 1 auto; }
 
 /* ---------- empty state ---------- */
 .empty {
@@ -268,6 +290,34 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
   font-family: var(--mono); font-size: 18px; font-weight: 800;
 }
 .preview-popup.is-modal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 24px)); }
+
+.detail-dialog {
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100vh - 40px); padding: 0;
+  border: var(--bw) solid var(--ink); border-radius: 0;
+  background: var(--surface); color: var(--ink);
+  box-shadow: 10px 10px 0 var(--ink);
+}
+.detail-dialog::backdrop { background: rgba(10, 10, 10, .55); }
+.detail-body { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.detail-thumb { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 2px solid var(--ink); }
+.detail-thumb .card-thumb { border: none; }
+.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.detail-title { font-size: 18px; text-transform: none; letter-spacing: -.01em; flex: 1 1 60%; }
+.detail-meta { margin: 0; font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.detail-url {
+  display: block; font-family: var(--mono); font-size: 12px; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  word-break: break-all; line-height: 1.4;
+}
+.detail-command {
+  margin: 0; padding: 10px 12px; background: var(--ink); color: var(--accent);
+  border: 2px solid var(--ink); font: 12.5px/1.5 var(--mono); overflow: auto; max-height: 160px;
+}
+.detail-note { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.55; }
+.detail-date { margin: 0; color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 10px; border-top: var(--bw) solid var(--ink); }
+.detail-actions .btn { flex: 1 1 auto; min-width: 110px; }
 
 .toast {
   position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);

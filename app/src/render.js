@@ -1,4 +1,5 @@
 import { TYPE_LABELS } from './constants.js';
+import { thumbnailFor } from './thumbnail.js';
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -7,6 +8,7 @@ function el(tag, props = {}, children = []) {
     if (k === 'class') node.className = v;
     else if (k === 'text') node.textContent = v;
     else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+    else if (v === true) node.setAttribute(k, '');
     else node.setAttribute(k, v);
   }
   for (const c of [].concat(children)) if (c) node.append(c);
@@ -20,62 +22,59 @@ const fmtDate = (iso) => {
     : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-// Review Focus 4: user text only ever reaches the DOM as textContent.
-export function createCardEl(bookmark, collectionName, sourceLabel, handlers = {}) {
+function localTile(label, type) {
+  return el('div', {
+    class: 'thumb-tile tile-' + type, role: 'img', 'aria-label': label || 'Bookmark',
+  }, [el('span', { text: (label || '?').slice(0, 2).toUpperCase() })]);
+}
+
+// Review Focus 4: label/data pengguna hanya lewat textContent.
+export function createThumbEl(bookmark, sourceLabelText) {
+  const t = thumbnailFor(bookmark);
+  const wrap = el('div', { class: 'card-thumb thumb-' + t.kind });
+  if (t.kind === 'local') {
+    wrap.append(localTile(t.label, bookmark.type));
+  } else {
+    const img = el('img', {
+      class: 'card-thumb-img', src: t.src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer',
+    });
+    img.onerror = () => wrap.replaceChildren(localTile(t.kind === 'youtube' ? 'YouTube' : t.label, bookmark.type));
+    wrap.append(img);
+  }
+  return wrap;
+}
+
+// Kartu ringkas: thumbnail + lencana + judul + meta. Klik kartu membuka detail.
+export function createCardEl(bookmark, collectionName, sourceLabelText, handlers = {}) {
   const isCommand = bookmark.type === 'command';
   const link = bookmark.url || '';
+  const open = () => handlers.onDetail && handlers.onDetail(bookmark);
 
   const head = el('div', { class: 'card-head' }, [
-    el('h3', { class: 'card-title', text: bookmark.title || sourceLabel || '' }),
-    el('span', { class: `badge badge-${bookmark.type}`, text: TYPE_LABELS[bookmark.type] || bookmark.type }),
+    el('h3', { class: 'card-title', text: bookmark.title || sourceLabelText || '' }),
+    el('span', { class: 'badge badge-' + bookmark.type, text: TYPE_LABELS[bookmark.type] || bookmark.type }),
   ]);
 
-  const card = el('article', { class: 'card', 'data-id': bookmark.id }, [head]);
+  const card = el('article', {
+    class: 'card', 'data-id': bookmark.id, tabindex: '0', role: 'button',
+    'aria-label': 'Lihat detail ' + (bookmark.title || link || 'bookmark'),
+  }, [createThumbEl(bookmark, sourceLabelText), head]);
 
-  if (!isCommand && link) {
-    card.append(el('a', {
-      class: 'card-source', href: link, target: '_blank', rel: 'noopener',
-      text: sourceLabel,
-    }));
-  } else if (sourceLabel) {
-    card.append(el('span', { class: 'card-source', text: sourceLabel }));
+  const meta = [];
+  if (sourceLabelText) meta.push(sourceLabelText);
+  if (collectionName) meta.push(collectionName);
+  if (meta.length) card.append(el('p', { class: 'card-meta', text: meta.join(' · ') }));
+
+  if (isCommand && bookmark.command) {
+    card.append(el('pre', { class: 'card-command', text: bookmark.command }));
   }
-
-  if (collectionName) card.append(el('span', { class: 'card-collection', text: collectionName }));
-
-  if (isCommand) {
-    card.append(el('pre', { class: 'card-command', text: bookmark.command || '' }));
-  } else if (link) {
-    card.append(el('div', { class: 'card-url', text: link }));
-  }
-
-  if (bookmark.note) card.append(el('p', { class: 'card-note', text: bookmark.note }));
 
   card.append(el('div', { class: 'card-date', text: 'Disimpan ' + fmtDate(bookmark.createdAt) }));
 
-  const actions = el('div', { class: 'card-actions' });
-  if (!isCommand && link) {
-    actions.append(el('a', { class: 'btn btn-small', href: link, target: '_blank', rel: 'noopener', text: 'Buka' }));
-  }
-  actions.append(el('button', {
-    class: 'btn btn-small', type: 'button', text: 'Copy',
-    onclick: () => handlers.onCopy && handlers.onCopy(bookmark),
-  }));
-  if (bookmark.type === 'video') {
-    actions.append(el('button', {
-      class: 'btn btn-small', type: 'button', text: 'Preview',
-      onclick: (e) => handlers.onPreview && handlers.onPreview(bookmark, e.currentTarget.closest('.card')),
-    }));
-  }
-  actions.append(el('button', {
-    class: 'btn btn-small', type: 'button', text: 'Edit',
-    onclick: () => handlers.onEdit && handlers.onEdit(bookmark),
-  }));
-  actions.append(el('button', {
-    class: 'btn btn-small btn-danger', type: 'button', text: 'Hapus',
-    onclick: () => handlers.onDelete && handlers.onDelete(bookmark),
-  }));
-  card.append(actions);
+  card.addEventListener('click', open);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+  });
 
   return card;
 }

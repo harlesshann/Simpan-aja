@@ -3,7 +3,8 @@ import { sourceLabel } from './detect.js';
 import { filterBookmarks } from './search.js';
 import { createCardEl, renderCollectionFilter } from './render.js';
 import { openBookmarkForm, openCollectionManager } from './form.js';
-import { openPreview, attachPreview } from './preview.js';
+import { openPreview } from './preview.js';
+import { openDetail } from './detail.js';
 import {
   listBookmarks, listCollections, putBookmark, deleteBookmark, putCollection, deleteCollectionAndDetach,
 } from './db.js';
@@ -87,14 +88,21 @@ function renderEmpty(total) {
 function handlers() {
   return {
     onCopy: (b) => copyText(b.type === 'command' ? b.command : b.url),
-    onPreview: (b, cardEl) => openPreview(b, cardEl),
+    onPreview: (b) => openPreview(b),
     onEdit: (b) => openEdit(b),
     onDelete: async (b) => {
-      if (!window.confirm(`Hapus "${b.title}"?`)) return;
+      if (!window.confirm(`Hapus "${b.title || b.url || b.command}"?`)) return false;
       await deleteBookmark(b.id);
       await render();
       toast('Item dihapus.');
+      return true;
     },
+    onDetail: (b) => openDetail({
+      bookmark: b,
+      collectionName: collectionName(b.collectionId),
+      sourceLabel: b.type === 'command' ? '' : sourceLabel(b.url),
+      handlers: handlers(),
+    }),
   };
 }
 
@@ -114,11 +122,9 @@ async function render() {
 
   const rows = filterBookmarks(bookmarks, byId, state);
 
-  els.grid.replaceChildren(...rows.map((b) => {
-    const card = createCardEl(b, collectionName(b.collectionId), b.type === 'command' ? '' : sourceLabel(b.url), handlers());
-    if (b.type === 'video') attachPreview(card, b);
-    return card;
-  }));
+  els.grid.replaceChildren(...rows.map((b) => (
+    createCardEl(b, collectionName(b.collectionId), b.type === 'command' ? '' : sourceLabel(b.url), handlers())
+  )));
 
   els.empty.hidden = rows.length > 0;
   if (!rows.length) renderEmpty(bookmarks.length);

@@ -104,18 +104,39 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Dokumen acuan diperbarui: `SPECS.md` §7.1, §7.2, §7.7, §7.8, §8.1, §8.4, §10.1;
   `PLAN.md` Task 1, 4, 5, 8.
 
+## Perubahan pasca-QA: kartu thumbnail + modal detail
+
+- Permintaan: kartu lebih rapi, menampilkan thumbnail konten, klik kartu → detail.
+- Pilihan pengguna: thumbnail remote (YouTube asli + favicon Google + tile lokal),
+  semua aksi pindah ke detail, hover-preview dihapus, detail = modal tengah.
+- **SPECS §6 diamandemen:** jaringan saat render kini diizinkan hanya ke
+  `i.ytimg.com` dan `www.google.com/s2/favicons` (lazy). Tidak ada endpoint lain.
+- Kode baru: `app/src/thumbnail.js` (`thumbnailFor`), `app/src/detail.js`
+  (`openDetail`/`closeDetail`), dialog `#detailDialog` di `index.html`.
+- `render.js` ditulis ulang: kartu = `role="button"` + `tabindex=0` +
+  `createThumbEl`; tombol aksi di kartu dihapus. `preview.js`: `attachPreview`
+  dihapus, `openPreview` selalu modal, dipicu dari detail. `main.js`: handler
+  `onDetail` + `onDelete` mengembalikan boolean.
+- Tes: **41 pass, 0 fail** (+ `tests/thumbnail.test.js` 7 tes).
+- QA: `qa/final-qa.mjs` **13/13 checks pass** (kriteria 1–7, 10–13, 15, O1);
+  audit jaringan hanya mengizinkan `i.ytimg.com`, `www.google.com/s2/favicons`,
+  dan redirect `*.gstatic.com` — 0 request tak terduga.
+- Dokumen diperbarui: `SPECS.md` §6.4, §7.3, §7.5, §10.1/5/7/11/12/15;
+  `PLAN.md` struktur file, Task 7/8/10/12.
+
 ## Hasil akhir
 
-- Rincian per kriteria: `QA-REPORT.md` → **14/14 lulus**.
+- Rincian per kriteria: `QA-REPORT.md` → **15/15 lulus + O1**.
 - Panduan pengguna: `app/README.md` (Bahasa Indonesia).
 
 ## Berkas
 
 - `app/index.html`, `app/styles.css`, `app/README.md`
 - `app/src/`: `constants.js`, `detect.js`, `search.js`, `embed.js`, `codec.js`,
-  `backup.js`, `db.js`, `render.js`, `form.js`, `preview.js`, `main.js`
+  `backup.js`, `db.js`, `render.js`, `thumbnail.js`, `detail.js`, `form.js`,
+  `preview.js`, `main.js`
 - `tests/`: `detect.test.js`, `search.test.js`, `embed.test.js`, `codec.test.js`,
-  `backup.test.js`
+  `backup.test.js`, `thumbnail.test.js`
 - `qa/`: tangkapan (`final-390.png`, `final-1280.png`, `task7-390.png`, `task7-1280.png`,
   `task10-preview.png`, `task10-fallback.png`, `task8-form.png`, `task9-collections.png`)
   + skrip QA (`drive.mjs`, `shot.mjs`, `states.mjs`, `task6-11.mjs`, `final-qa.mjs`,

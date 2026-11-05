@@ -62,7 +62,9 @@ const humanizeSeg = (seg) => seg
   .trim()
   .replace(/(^|\s)(\S)/g, (_, a, b) => a + b.toUpperCase());
 
-function youtubeId(u) {
+export function youtubeVideoId(rawUrl) {
+  if (!isValidHttpUrl(rawUrl)) return '';
+  const u = new URL(rawUrl);
   if (hostMatches(bareHost(u), 'youtu.be')) return u.pathname.replace(/^\/+/, '').split('/')[0] || '';
   if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/')[2] || '';
   return u.searchParams.get('v') || '';
@@ -79,7 +81,7 @@ export function deriveTitle({ type, url, command } = {}) {
   const host = bareHost(u);
 
   if (hostMatches(host, 'youtube.com') || hostMatches(host, 'youtu.be')) {
-    return `YouTube — ${youtubeId(u) || host}`;
+    return `YouTube — ${youtubeVideoId(url) || host}`;
   }
   for (const [h, label] of HOST_LABEL) {
     if (h === 'chromewebstore.google.com' && hostMatches(host, h)) return 'Chrome Web Store';

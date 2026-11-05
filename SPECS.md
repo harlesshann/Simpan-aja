@@ -90,7 +90,7 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
 3. Konsekuensi batasan 1–2 yang harus terlihat jujur di aplikasi: mengganti browser/perangkat atau menghapus data browser membuat koleksi tidak ikut — karena itu export JSON (§7.8) adalah jalan keluar resminya dan tombolnya harus mudah ditemukan.
 
-4. \*\*Tidak ada panggilan jaringan dari aplikasi\*\*, kecuali: (a) membuka link bookmark yang diklik pengguna, dan (b) memuat embed video saat preview popup dibuka (§7.5). Tidak ada analytics/tracking.
+4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, (b) memuat embed video saat preview dibuka (§7.5), dan (c) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal.
 
 5. Antarmuka dan semua pesan untuk pengguna dalam \*\*Bahasa Indonesia\*\*.
 
@@ -152,33 +152,37 @@ Susunan halaman (atas ke bawah):
 
 6. \*\*Kelola Koleksi:\*\* sebuah area/tombol untuk membuat, me-rename, dan menghapus Koleksi (lihat §7.6).
 
-Isi satu kartu:
+Isi satu kartu (ringkas — detail lengkap ada di modal detail saat kartu diklik):
+
+- \*\*Thumbnail\*\* rasio 16:9 di bagian atas: thumbnail asli YouTube bila video YouTube; favicon situs untuk tipe berbasis link lain; tile lokal berwarna sesuai tipe (inisial label) untuk Command, TikTok/Instagram/Threads, dan fallback saat gambar gagal dimuat.
 
 - Lencana (badge) tipe yang jelas berbeda warna/ikon per tipe + label tipenya.
 
-- Judul.
+- Judul (maks 2 baris).
 
 - Sumber: label platform yang diturunkan dari domain (mis. YouTube, GitHub, TikTok) atau hostname untuk domain lain.
 
 - Nama Koleksi (bila ada).
 
-- Catatan (terpotong bila panjang).
-
 - Tanggal disimpan.
 
 - Khusus Command: cuplikan command (monospace, terpotong).
 
-- Aksi per kartu:
+Kartu itu sendiri adalah tombol (dapat difokus keyboard, `Enter`/`Space`): mengklik kartu membuka \*\*modal detail\*\* di tengah layar. Modal detail memuat thumbnail besar, lencana, judul, sumber, URL/command lengkap, Koleksi, catatan penuh, tanggal, dan semua aksi:
 
   - `Buka` (tipe berbasis link; membuka tab baru dengan `rel="noopener"`)
 
   - `Copy` (menyalin URL untuk tipe berbasis link; menyalin teks command untuk Command)
 
-  - `Preview` (hanya kartu Video; lihat §7.5)
+  - `Preview` (hanya item Video; lihat §7.5)
 
   - `Edit`
 
   - `Hapus` (dengan konfirmasi dulu)
+
+  - `Tutup`
+
+Tidak ada tombol aksi di kartu grid dan tidak ada hover-preview; semua aksi lewat modal detail. Tujuan: grid rapi dan visual, satu pola interaksi di HP & desktop.
 
 Keadaan kosong yang harus ditangani dengan pesan berbahasa Indonesia:
 
@@ -196,15 +200,13 @@ Keadaan kosong yang harus ditangani dengan pesan berbahasa Indonesia:
 
 - Urutan hasil selalu \*\*terbaru disimpan di atas\*\* (`createdAt` menurun); search/filter tidak mengubah urutan.
 
-### 7.5 Preview popup untuk kartu Video \*\*\[Handy — dengan syarat yang disetujui Handy\]\*\*
+### 7.5 Preview popup untuk item Video \*\*\[Handy — dengan syarat yang disetujui Handy; diubah: modal dari detail\]\*\*
 
 Bunyi fitur yang disepakati persis: *"Preview popup untuk kartu Video, memutar embed bila platformnya mengizinkan, fallback info + buka sumber bila diblokir."*
 
 Perilaku:
 
-- \*\*Desktop:\*\* mengarahkan kursor (hover) ke kartu Video selama ±400 ms \*\*\[Usulan Harless\]\*\* memunculkan popup preview yang lebih besar di dekat kartu. Hover hanya berlaku pada perangkat dengan penunjuk halus (mouse); gerakan kursor yang hanya lewat tidak memunculkan popup.
-
-- \*\*HP/sentuh:\*\* tidak ada hover — pengguna mengetuk tombol `Preview` pada kartu, popup yang sama muncul (sebagai modal di tengah layar pada layar kecil).
+- \*\*Modal tengah, dipicu dari detail (semua perangkat):\*\* tidak ada hover. Preview dibuka lewat tombol `Preview` di \*\*modal detail\*\* (§7.3). Popup preview tampil sebagai modal di tengah layar di HP maupun desktop — satu pola, ringkas.
 
 - Embed \*\*baru dimuat saat preview dibuka\*\* (tidak semua kartu dimuat di awal) dan \*\*dibuang saat popup ditutup\*\*, agar pemutaran berhenti dan halaman tetap ringan.
 
@@ -455,11 +457,11 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
 4. Kombinasi search + chip tipe + filter Koleksi menghasilkan irisan yang benar; mengosongkan semuanya mengembalikan daftar penuh urut terbaru-di-atas.
 
-5. Copy pada kartu Command menyalin teks command persis; Copy pada kartu berbasis link menyalin URL persis.
+5. Membuka detail kartu Command lalu menekan Copy menyalin teks command persis; membuka detail kartu berbasis link lalu menekan Copy menyalin URL persis.
 
 6. Menghapus Koleksi tidak menghapus bookmark-nya; itemnya tampil di "Belum Dikoleksi".
 
-7. Hover kartu Video YouTube (desktop) memunculkan popup berisi player embed; mengetuk Preview pada kartu Video Threads menampilkan popup fallback dengan tombol `Tonton di Sumbernya`; menutup popup menghentikan pemutaran.
+7. Menekan kartu Video membuka modal detail; tombol `Preview` di sana memutar embed YouTube; item Threads menampilkan popup fallback dengan tombol `Tonton di Sumbernya`; menutup popup menghentikan pemutaran. Tidak ada hover-preview.
 
 8. Link 1-tap Muse yang valid membuka formulir terisi (termasuk usulan Koleksi baru), fragment dibersihkan dari URL, dan item \*\*belum\*\* tersimpan sebelum `Simpan` ditekan. Link dengan payload rusak menampilkan pesan kesalahan dan formulir kosong.
 
@@ -467,13 +469,15 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
 10. Menambah URL yang sudah tersimpan memunculkan peringatan duplikat §7.1.
 
-11. Seluruh alur di atas dapat dilakukan pada viewport ±390px tanpa elemen tumpang tindih yang menghalangi, dan pada ±1280px grid tampil multi-kolom.
+11. Seluruh alur di atas dapat dilakukan pada viewport ±390px tanpa elemen tumpang tindih yang menghalangi, dan pada ±1280px grid tampil multi-kolom. Kartu dapat difokus keyboard (role tombol, `Enter`/`Space` membuka detail); thumbnail tidak merusak lebar kartu.
 
-12. Aplikasi tidak melakukan panggilan jaringan selain membuka link yang diklik pengguna dan memuat embed saat preview dibuka.
+12. Panggilan jaringan saat aplikasi dipakai hanya ke sumber yang diizinkan §6: membuka link yang diklik pengguna, embed saat preview dibuka, dan gambar thumbnail dari `i.ytimg.com` serta `www.google.com/s2/favicons` (termasuk redirect layanannya). Tidak ada panggilan lain.
 
 13. Import ke aplikasi yang tidak kosong mempertahankan `createdAt` asli tiap bookmark (urutan daftar tidak berubah menjadi urutan import), dan tabrakan `id` dengan bookmark berbeda diselesaikan dengan `id` baru untuk item yang masuk.
 
 14. Link 1-tap dengan payload JSON lebih dari 2.000 karakter ditolak dengan pesan kesalahan yang mengarahkan ke import JSON.
+
+15. Mengklik kartu membuka modal detail terpusat yang memuat thumbnail, lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan semua aksi (`Buka`/`Copy`/`Preview`/`Edit`/`Hapus`/`Tutup`); `Tutup`, `Esc`, dan klik backdrop menutup modal tanpa perubahan data.
 
 ## 11. Yang Diserahkan ke Builder (tahap rencana yang memutuskan)
 

@@ -29,10 +29,17 @@ Lalu buka `http://localhost:8000/` (atau alamat kanonis Anda).
 - **Filter:** chip tipe + filter Koleksi (termasuk `Belum Dikoleksi`).
 - **Koleksi:** buat/rename/hapus lewat tombol `Kelola`. Menghapus Koleksi
   **tidak** menghapus bookmark-nya; itemnya pindah ke `Belum Dikoleksi`.
-- **Preview video:** hover kartu Video di desktop (±400 ms) atau ketuk `Preview`
-  untuk sumber yang mendukung embed (YouTube, TikTok, file `.mp4`/`.webm`).
-  Platform yang memblokir embed (Threads, Instagram, dll.) menampilkan tombol
-  `Tonton di Sumbernya`. Menutup preview menghentikan pemutaran.
+- **Kartu:** tiap kartu menampilkan **thumbnail konten** — thumbnail asli YouTube
+  untuk video YouTube, favicon situs untuk link lain, tile lokal berwarna sesuai tipe
+  untuk Command/TikTok/Instagram/Threads dan bila gambar gagal dimuat. Kartu bisa
+  diklik (atau `Enter`/`Space` saat difokus) untuk membuka **detail**.
+- **Detail (modal):** thumbnail besar, lencana tipe, judul, sumber, URL/command,
+  Koleksi, catatan, tanggal, dan semua aksi: `Buka`, `Copy`, `Preview`, `Edit`,
+  `Hapus`, `Tutup`. `Tutup`, `Esc`, atau klik di luar menutupnya.
+- **Preview video:** tombol `Preview` di modal detail, untuk sumber yang mendukung
+  embed (YouTube, TikTok, file `.mp4`/`.webm`). Platform yang memblokir embed
+  (Threads, Instagram, dll.) menampilkan tombol `Tonton di Sumbernya`. Menutup
+  preview menghentikan pemutaran.
 
 ## Backup: Export & Import
 
@@ -65,4 +72,6 @@ di-encode **base64url (UTF-8, tanpa padding)**:
 ## Yang sengaja tidak ada di v1
 
 Login, sync antar perangkat, PWA (manifest/service worker), tag, Pin/Favorit,
-auto-fetch metadata, analytics, dan impor otomatis dari platform lain.
+auto-fetch deskripsi/konten halaman, analytics, dan impor otomatis dari platform lain.
+Thumbnail hanya diambil dari sumber yang diizinkan (YouTube + favicon Google); isi
+halaman tidak pernah dibaca.

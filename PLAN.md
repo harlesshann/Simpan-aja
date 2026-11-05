@@ -70,15 +70,19 @@ Lima kelas masukan/kegagalan yang paling mungkin menggigit pengguna, masing-masi
 
 - `app/src/db.js` — satu-satunya modul yang menyentuh IndexedDB: CRUD bookmark/Koleksi + hapus-Koleksi-sekaligus-lepas-item dalam satu transaksi.
 
-- `app/src/render.js` — bangun elemen kartu &amp; daftar Koleksi dari data (DOM aman, tanpa `innerHTML` untuk data pengguna).
+- `app/src/render.js` — bangun elemen kartu (thumbnail + lencana + judul + meta) &amp; daftar Koleksi dari data (DOM aman, tanpa `innerHTML` untuk data pengguna); kartu = tombol pembuka detail.
+
+- `app/src/thumbnail.js` — pilih sumber gambar thumbnail per bookmark (YouTube asli / favicon / tile lokal); satu-satunya modul yang menyusun URL gambar eksternal.
+
+- `app/src/detail.js` — modal detail terpusat: isi lengkap satu bookmark + semua aksi (Buka/Copy/Preview/Edit/Hapus/Tutup).
 
 - `app/src/form.js` — formulir tambah/edit (termasuk mode Command &amp; peringatan duplikat) dan dialog kelola Koleksi.
 
-- `app/src/preview.js` — perilaku popup preview (hover desktop, tap di HP, tutup/Esc, buang embed saat ditutup).
+- `app/src/preview.js` — perilaku popup preview sebagai modal tengah yang dipicu dari detail (tutup/Esc/klik luar, buang embed saat ditutup).
 
 - `app/src/main.js` — bootstrap: buka DB, muat state, wiring semua event, tangani fragment `#add=`, jalankan export/import.
 
-- `tests/detect.test.js`, `tests/search.test.js`, `tests/embed.test.js`, `tests/codec.test.js`, `tests/backup.test.js` — tes Node untuk modul murni.
+- `tests/detect.test.js`, `tests/search.test.js`, `tests/embed.test.js`, `tests/codec.test.js`, `tests/backup.test.js`, `tests/thumbnail.test.js` — tes Node untuk modul murni.
 
 - `app/[README.md](http://README.md)` — cara pakai &amp; peringatan alamat kanonis/backup (Task 12).
 
@@ -366,13 +370,13 @@ assert.equal(r2.addBookmarks.length, 0); assert.equal(r2.skippedDuplicates, 1);
 
 - Consumes: `listBookmarks/listCollections` (Task 6), `filterBookmarks` (Task 2), `TYPE_LABELS` (Task 1), `previewFor` bukan di sini (Task 10).
 
-- Produces: `createCardEl(bookmark, collectionName, handlers) -> HTMLElement` dan `renderCollectionFilter(el, collections, counts, selected)` dari `render.js`; `handlers = { onOpen, onCopy, onPreview, onEdit, onDelete }` (tombol Preview dirender hanya untuk tipe `video`; handler-nya diisi Task 10, di task ini tombol belum ada — Preview ditambahkan Task 10). Task 8–10 mengonsumsi `createCardEl` dan pola handlers ini.
+- Produces: `createCardEl(bookmark, collectionName, sourceLabel, handlers) -> HTMLElement`, `createThumbEl(bookmark, sourceLabel) -> HTMLElement` dan `renderCollectionFilter(el, collections, counts, selected)` dari `render.js`; `handlers = { onDetail, onCopy, onPreview, onEdit, onDelete }` — kartu tanpa tombol; klik/`Enter`/`Space` memanggil `onDetail` (diisi Task 8/10; di task ini belum terdaftar). Task 8–10 mengonsumsi pola handlers ini.
 
 - \[ \] \*\*Step 1: Tulis pemeriksaan yang gagal\*\* — dengan data contoh sementara (3 bookmark: Video/Command/Repo, 1 Koleksi) yang di-seed lewat konsol memakai API Task 6: pada 390px grid 1 kolom; mengetik kata di search menyaring daftar; chip `Command` hanya menampilkan kartu Command; memilih Koleksi menyaring; keadaan kosong tampil saat filter tidak menghasilkan apa-apa. Sebelum task ini, halaman hanya menampilkan baris status Task 6 → pemeriksaan gagal.
 
 - \[ \] \*\*Step 2: Implementasikan\*\* `index.html` + `styles.css`: token warna dengan \*\*lencana berbeda per tipe\*\* (6 tipe mudah dibedakan sekilas), layout header (nama aplikasi, jumlah total, tombol `+ Tambah`, `Import`, `Export` — Import/Export dirender di sini, wiring-nya Task 11)/search/chip/grid, daftar Koleksi sebagai sidebar di ≥1024px dan chip mendatar yang dapat di-scroll di bawah itu, fokus terlihat, target sentuh ≥ 40px. Sertakan catatan kecil yang selalu terlihat di bawah header sesuai SPECS §6 butir 3: data tersimpan lokal di browser ini dan export JSON adalah jalan backup-nya. Teks statis semua Bahasa Indonesia.
 
-- \[ \] \*\*Step 3: Implementasikan\*\* `render.js` + wiring di `main.js`: kartu dibangun hanya dengan `createElement`/`textContent` (Review Focus 4); isi kartu persis SPECS §7.3 (lencana, judul, sumber via `sourceLabel`, Koleksi, catatan terpotong CSS, tanggal, cuplikan command monospace); aksi `Buka` (tab baru, `rel="noopener"`), `Copy` (`navigator.clipboard.writeText` — URL atau isi command; pesan sukses singkat; bila clipboard ditolak browser, tampilkan teks dalam dialog agar bisa disalin manual), `Edit`/`Hapus` dirender tetapi handler-nya diisi Task 8 (di task ini tombol memanggil handler yang belum terdaftar → jangan dirender dulu; render hanya `Buka`/`Copy`). Urutan tampilan selalu keluaran `filterBookmarks`.
+- \[ \] \*\*Step 3: Implementasikan\*\* `render.js` + wiring di `main.js`: kartu dibangun hanya dengan `createElement`/`textContent` (Review Focus 4); isi kartu persis SPECS §7.3 (thumbnail 16:9 via `createThumbEl` — YouTube asli/favicon/tile lokal, lencana, judul, sumber via `sourceLabel`, Koleksi, tanggal, cuplikan command monospace); kartu adalah tombol (`role="button"`, `tabindex="0"`, `Enter`/`Space`) yang memanggil `onDetail`; semua aksi (`Buka`/`Copy`/`Preview`/`Edit`/`Hapus`/`Tutup`) hidup di modal detail (§7.3), bukan di kartu. Urutan tampilan selalu keluaran `filterBookmarks`.
 
 - \[ \] \*\*Step 4: Jalankan pemeriksaan, pastikan lulus\*\* — ulangi Step 1 pada \*\*390px dan 1280px\*\* (tangkapan layar headless Chromium untuk kedua ukuran, diperiksa visual: tidak ada tumpang tindih, grid 1 kolom di HP &amp; multi-kolom di desktop — kriteria SPECS §10.11).
 
@@ -384,7 +388,7 @@ assert.equal(r2.addBookmarks.length, 0); assert.equal(r2.skippedDuplicates, 1);
 
 - Create: `app/src/form.js`
 
-- Modify: `app/src/render.js` (tambahkan tombol `Edit` &amp; `Hapus` pada kartu lewat handlers)
+- Modify: `app/src/detail.js` (tombol `Edit` &amp; `Hapus` di modal detail lewat handlers)
 
 - Modify: `app/src/main.js` (daftarkan handler tambah/edit/hapus; konfirmasi hapus; segarkan daftar sesudah simpan)
 
@@ -424,27 +428,27 @@ assert.equal(r2.addBookmarks.length, 0); assert.equal(r2.skippedDuplicates, 1);
 
 - \[ \] \*\*Step 4: Checkpoint\*\* — Catat hasilnya.
 
-### Task 10: Preview popup video
+### Task 10: Preview popup video (modal dari detail)
 
 \*\*Files:\*\*
 
 - Create: `app/src/preview.js`
 
-- Modify: `app/src/render.js` (tambahkan tombol `Preview` pada kartu `video`, handler `onPreview`)
+- Modify: `app/src/detail.js` (tombol `Preview` hanya untuk tipe `video`)
 
-- Modify: `app/src/main.js` (daftarkan `onPreview`; deteksi perangkat berpenunjuk halus untuk jalur hover)
+- Modify: `app/src/main.js` (daftarkan `onPreview`)
 
 \*\*Interfaces:\*\*
 
 - Consumes: `previewFor` (Task 3).
 
-- Produces: `attachPreview(cardEl, bookmark)` dan `openPreview(bookmark)` dari `preview.js` — satu popup tunggal dipakai ulang; menutup popup \*\*menghapus\*\* elemen embed dari DOM.
+- Produces: `openPreview(bookmark)` / `closePreview()` dari `preview.js` — satu popup tunggal dipakai ulang; menutup popup \*\*menghapus\*\* elemen embed dari DOM.
 
-- \[ \] \*\*Step 1: Tulis pemeriksaan yang gagal\*\* — skenario SPECS §10.7: hover ±400 ms pada kartu YouTube (desktop, `matchMedia('(pointer: fine)')`) → popup berisi iframe [`youtube-nocookie.com/embed/…`](http://youtube-nocookie.com/embed/…`); gerakkan kursor pergi sebelum 400 ms → popup tidak muncul; ketuk `Preview` pada kartu Threads → popup fallback (judul, sumber, catatan, tombol `Tonton di Sumbernya`), \*\*tanpa\*\* iframe; file `.mp4` → elemen `<video controls>`; `Esc`/klik luar menutup dan iframe/video hilang dari DOM (pemutaran berhenti); tidak ada autoplay bersuara.
+- \[ \] \*\*Step 1: Tulis pemeriksaan yang gagal\*\* — skenario SPECS §10.7 &amp; §10.15: klik kartu YouTube → modal detail terbuka → tekan `Preview` → popup berisi iframe `youtube-nocookie.com/embed/…` dan detail tertutup; klik kartu Threads → `Preview` → popup fallback (judul, sumber, catatan, tombol `Tonton di Sumbernya`), \*\*tanpa\*\* iframe; file `.mp4` → elemen `<video controls>`; `Esc`/klik luar menutup dan iframe/video hilang dari DOM (pemutaran berhenti); tidak ada autoplay bersuara.
 
-- \[ \] \*\*Step 2: Implementasikan\*\* `preview.js`: timer hover 400 ms yang dibatalkan saat kursor pergi; pada desktop popup tampil \*\*di dekat kartu\*\* yang di-hover (dan selalu utuh di dalam viewport); pada layar sentuh/kecil popup tampil sebagai modal tengah; isi popup dibangun dari hasil `previewFor` — `youtube`/`tiktok` → iframe (`allow` secukupnya, tanpa `autoplay`), `file` → `<video controls preload="metadata">`, `fallback` → panel info + tombol buka sumber; satu popup aktif pada satu waktu.
+- \[ \] \*\*Step 2: Implementasikan\*\* `preview.js`: popup selalu tampil sebagai \*\*modal tengah\*\* (tidak ada hover); isi popup dibangun dari hasil `previewFor` — `youtube`/`tiktok` → iframe (`allow` secukupnya, tanpa `autoplay`), `file` → `<video controls preload="metadata">`, `fallback` → panel info + tombol buka sumber; satu popup aktif pada satu waktu.
 
-- \[ \] \*\*Step 3: Jalankan pemeriksaan, pastikan lulus\*\* — pada mode desktop headless (hover disimulasikan) dan viewport 390px (jalur ketuk).
+- \[ \] \*\*Step 3: Jalankan pemeriksaan, pastikan lulus\*\* — pada viewport 1280px dan 390px (satu pola modal).
 
 - \[ \] \*\*Step 4: Checkpoint\*\* — Simpan tangkapan popup YouTube &amp; fallback (`qa/task10-preview.png`, `qa/task10-fallback.png`) dan catat hasilnya.
 
@@ -496,7 +500,7 @@ assert.equal(r2.addBookmarks.length, 0); assert.equal(r2.skippedDuplicates, 1);
 
 ## Self-Review (diisi penulis plan, 2026-11-03)
 
-- \*\*Cakupan spec:\*\* §7.1 → Task 8 (+ deteksi Task 1); §7.2 → Task 8 &amp; render Task 7; §7.3 → Task 7; §7.4 → Task 2 &amp; 7; §7.5 → Task 3 &amp; 10; §7.6 → Task 6 &amp; 9; §7.7 → Task 4 &amp; 11; §7.8 → Task 5 &amp; 11; §8 model data &amp; aturan turunan → Task 1, 5, 6; §6 batasan (tanpa jaringan, tanpa PWA, alamat kanonis, Bahasa Indonesia, catatan risiko data lokal yang terlihat di dalam aplikasi) → Global Constraints + Task 7 (catatan di bawah header, tombol header) + Task 10 (posisi popup) + audit Task 12; §10 kriteria 1–14 → dipetakan di Step pemeriksaan Task 6–11 dan dilalui utuh di Task 12. Tidak ada persyaratan spec tanpa task.
+- \*\*Cakupan spec:\*\* §7.1 → Task 8 (+ deteksi Task 1); §7.2 → Task 8 &amp; render Task 7; §7.3 → Task 7, `detail.js`, `thumbnail.js`; §7.4 → Task 2 &amp; 7; §7.5 → Task 3 &amp; 10; §7.6 → Task 6 &amp; 9; §7.7 → Task 4 &amp; 11; §7.8 → Task 5 &amp; 11; §8 model data &amp; aturan turunan → Task 1, 5, 6; §6 batasan (jaringan hanya untuk link/embed/thumbnail tersetujui, tanpa PWA, alamat kanonis, Bahasa Indonesia, catatan risiko data lokal yang terlihat di dalam aplikasi) → Global Constraints + Task 7 (catatan di bawah header, tombol header) + Task 10 (modal preview) + audit Task 12; §10 kriteria 1–15 → dipetakan di Step pemeriksaan Task 6–11 dan dilalui utuh di Task 12. Tidak ada persyaratan spec tanpa task.
 
 - \*\*Konsistensi nama/tipe:\*\* `filterBookmarks`, `previewFor`, `decodeAddPayload`, `planImport`, `findDuplicate`, `openBookmarkForm`, `deleteCollectionAndDetach` dieja sama di bagian Interfaces, langkah task, dan pemakaian lintas task; enum &amp; konstanta hanya didefinisikan di Task 1.
 

@@ -91,18 +91,24 @@ R.notes.addForm = addResult;
 const badges = await evaluate(`([...document.querySelectorAll('.card')].map(c => ({
   title: c.querySelector('.card-title')?.textContent,
   badge: c.querySelector('.badge')?.textContent,
+  thumb: c.querySelector('.card-thumb-img')?.getAttribute('src') || c.querySelector('.thumb-tile')?.getAttribute('aria-label') || null,
 })))`);
 R.notes.badges = badges;
 const labelByTitle = Object.fromEntries((badges || []).map((b) => [b.title, b.badge]));
-check('1. semua tipe tampil dengan lencana benar',
+const thumbByTitle = Object.fromEntries((badges || []).map((b) => [b.title, b.thumb]));
+check('1. semua tipe tampil dengan lencana benar + thumbnail sesuai sumber',
   labelByTitle['Belajar easing dasar'] === 'Video' &&
   labelByTitle['Artikel CSS layout'] === 'Website' &&
   labelByTitle['Konversi audio mp4'] === 'Command' &&
   labelByTitle['Orca video editor'] === 'Repo GitHub' &&
   labelByTitle['Ekstensi React DevTools'] === 'Extension' &&
   labelByTitle['Catatan internal'] === 'Lainnya' &&
+  thumbByTitle['Belajar easing dasar'] === 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' &&
+  thumbByTitle['Artikel CSS layout'] === 'https://www.google.com/s2/favicons?domain=web.dev&sz=128' &&
+  thumbByTitle['Konversi audio mp4'] === 'Command' &&
+  thumbByTitle['Teknik color grading'] === 'Threads' &&
   Object.values(addResult || {}).every(Boolean),
-  JSON.stringify(labelByTitle));
+  JSON.stringify({ labelByTitle, thumbByTitle }));
 
 // ---------- Criterion 2: detection guesses, manually overridable ----------
 const detect = await evaluate(`(async()=>{
@@ -163,12 +169,19 @@ check('4. irisan search+chip+Koleksi dan urutan terbaru',
   filtering.all === 7 && filtering.first === 'Teknik color grading',
   JSON.stringify(filtering));
 
-// ---------- Criterion 5: copy exact text ----------
+// ---------- Criterion 5: copy exact text via detail modal ----------
 const copy = await evaluate(`(async()=>{
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+  const q = (s)=>document.querySelector(s);
   const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
-  const btn = (c, t)=>[...c.querySelectorAll('button')].find(b=>b.textContent===t);
-  const read = async (title)=>{ btn(cardBy(title),'Copy').click(); await sleep(120); return navigator.clipboard.readText(); };
+  const btnIn = (root, t)=>[...root.querySelectorAll('button')].find(b=>b.textContent===t);
+  const read = async (title)=>{
+    cardBy(title).click(); await sleep(90);
+    btnIn(q('#detailDialog'),'Copy').click(); await sleep(140);
+    const txt = await navigator.clipboard.readText();
+    btnIn(q('#detailDialog'),'Tutup').click(); await sleep(60);
+    return txt;
+  };
   const cmd = await read('Konversi audio mp4');
   const web = await read('Artikel CSS layout');
   return { cmd, web };
@@ -177,6 +190,37 @@ R.notes.copy = copy;
 check('5. Copy command & URL persis',
   copy.cmd === 'ffmpeg -i in.mp4 -vn -acodec libmp3lame out.mp3' &&
   copy.web === 'https://web.dev/learn/css/layout', JSON.stringify(copy));
+
+// ---------- Criterion 15: card click opens detail modal ----------
+const detail = await evaluate(`(async()=>{
+  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+  const q = (s)=>document.querySelector(s);
+  const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
+  const d = q('#detailDialog');
+  const c = cardBy('Orca video editor');
+  const role = c.getAttribute('role'); const tab = c.tabIndex; const hasThumb = !!c.querySelector('.card-thumb');
+  c.click(); await sleep(90);
+  const out = {
+    role, tab, hasThumb,
+    open: d.open,
+    title: d.querySelector('.detail-title')?.textContent,
+    badge: d.querySelector('.badge')?.textContent,
+    url: d.querySelector('.detail-url')?.textContent,
+    thumb: !!d.querySelector('.detail-thumb .card-thumb'),
+    actions: [...d.querySelectorAll('.detail-actions button, .detail-actions a')].map(e=>e.textContent),
+  };
+  [...d.querySelectorAll('button')].find(b=>b.textContent==='Tutup').click(); await sleep(60);
+  out.closed = !d.open;
+  return out;
+})()`);
+R.notes.detail = detail;
+check('15. klik kartu membuka detail lengkap (thumb, judul, sumber, aksi) lalu Tutup',
+  detail.role === 'button' && detail.tab === 0 && detail.hasThumb && detail.open &&
+  detail.title === 'Orca video editor' && detail.badge === 'Repo GitHub' &&
+  detail.url === 'https://github.com/stablyai/orca' && detail.thumb &&
+  detail.actions.includes('Buka') && detail.actions.includes('Copy') &&
+  detail.actions.includes('Edit') && detail.actions.includes('Hapus') &&
+  detail.actions.includes('Tutup') && detail.closed, JSON.stringify(detail));
 
 // ---------- Criterion 6: delete collection keeps bookmarks ----------
 const collections = await evaluate(`(async()=>{
@@ -208,39 +252,33 @@ check('6. hapus Koleksi tidak menghapus bookmark',
 await evaluate(`document.querySelector('[data-collection="all"]').click()`);
 await sleep(80);
 
-// ---------- Criterion 7: preview hover YouTube, fallback Threads, close removes embed ----------
+// ---------- Criterion 7: preview from detail (YouTube iframe, Threads fallback, close drops embed) ----------
 const preview = await evaluate(`(async()=>{
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
   const q = (s)=>document.querySelector(s);
   const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
-  const btn = (c, t)=>[...c.querySelectorAll('button')].find(b=>b.textContent===t);
-  const out = { fine: matchMedia('(pointer: fine)').matches };
+  const btnIn = (root, t)=>[...root.querySelectorAll('button')].find(b=>b.textContent===t);
+  const out = {};
 
-  const yt = cardBy('Belajar easing dasar');
-  yt.dispatchEvent(new MouseEvent('mouseenter'));
-  await sleep(150);
-  yt.dispatchEvent(new MouseEvent('mouseleave'));
-  await sleep(400);
-  out.cancelled = q('#previewPopup').hidden;
-
-  yt.dispatchEvent(new MouseEvent('mouseenter'));
-  await sleep(200);
-  out.before400 = !q('#previewPopup iframe');
-  await sleep(350);
+  cardBy('Belajar easing dasar').click(); await sleep(90);
+  out.detailOpen = q('#detailDialog').open;
+  btnIn(q('#detailDialog'),'Preview').click(); await sleep(160);
   out.iframe = q('#previewPopup iframe')?.src || null;
+  out.detailClosed = !q('#detailDialog').open;
   out.noAutoplay = !/autoplay/.test(q('#previewPopup iframe')?.getAttribute('allow') || '');
   q('.preview-close')?.click(); await sleep(80);
   out.closedRemoved = !q('#previewPopup iframe') && q('#previewPopup').hidden;
 
-  btn(cardBy('Teknik color grading'), 'Preview').click(); await sleep(100);
+  cardBy('Teknik color grading').click(); await sleep(90);
+  btnIn(q('#detailDialog'),'Preview').click(); await sleep(120);
   out.fallbackNoIframe = !q('#previewPopup iframe');
   out.fallbackSource = q('#previewPopup a')?.textContent || null;
   q('.preview-close').click(); await sleep(60);
   return out;
 })()`);
 R.notes.preview = preview;
-check('7. preview YouTube + fallback Threads + tutup membuang embed',
-  preview.fine && preview.cancelled && preview.before400 &&
+check('7. preview dari detail: YouTube iframe + fallback Threads + tutup membuang embed',
+  preview.detailOpen && preview.detailClosed && preview.noAutoplay &&
   /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(preview.iframe || '') &&
   preview.closedRemoved && preview.fallbackNoIframe &&
   preview.fallbackSource === 'Tonton di Sumbernya', JSON.stringify(preview));
@@ -311,7 +349,7 @@ const onlyUrl = await evaluate(`(async()=>{
   q('#bookmarkForm').requestSubmit(); await sleep(150);
   const db = await import('/src/db.js');
   const item = (await db.listBookmarks()).find(b=>b.url==='https://web.dev/learn/css/grid');
-  const card = [...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-url')?.textContent==='https://web.dev/learn/css/grid');
+  const card = [...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent==='Learn Css Grid');
   const title = item?.title;
   const cardTitle = card?.querySelector('.card-title')?.textContent;
   if (item) await db.deleteBookmark(item.id);
@@ -322,7 +360,7 @@ check('O1. kolom judul dikosongkan -> judul diturunkan dari URL',
   onlyUrl.title === 'Learn Css Grid' && onlyUrl.cardTitle === 'Learn Css Grid',
   JSON.stringify(onlyUrl));
 
-// ---------- Criterion 12: network audit on load + local interactions ----------
+// ---------- Criterion 12: network audit — only approved thumbnail sources ----------
 requests.length = 0;
 await navFresh(APP);
 await evaluate(`(async()=>{
@@ -333,10 +371,17 @@ await evaluate(`(async()=>{
   await new Promise(r=>setTimeout(r,100));
   return 1;
 })()`);
-await sleep(400);
+await sleep(600);
+const APPROVED = [
+  /^https:\/\/i\.ytimg\.com\//,
+  /^https:\/\/www\.google\.com\/s2\/favicons\?/,
+  /^https:\/\/[a-z0-9-]+\.gstatic\.com\//,
+];
 const external = requests.filter((u) => !u.startsWith('http://localhost:8000') && !u.startsWith('data:'));
-R.notes.network = { total: requests.length, external };
-check('12. tanpa panggilan jaringan eksternal saat muat/search/filter', external.length === 0, JSON.stringify(R.notes.network));
+const unexpected = external.filter((u) => !APPROVED.some((re) => re.test(u)));
+R.notes.network = { total: requests.length, external, unexpected };
+check('12. jaringan hanya untuk thumbnail YouTube/favicon tersetujui', unexpected.length === 0,
+  JSON.stringify(R.notes.network));
 
 // ---------- Criterion 11 + screenshots ----------
 await navFresh(APP);
@@ -348,8 +393,8 @@ const small = await evaluate(`({
   scrollWidth: document.documentElement.scrollWidth,
   columns: getComputedStyle(document.getElementById('grid')).gridTemplateColumns.split(' ').length,
   cards: document.querySelectorAll('.card').length,
-  dialogInside: (() => { const d=document.getElementById('bookmarkDialog'); return true; })(),
-  tapTargets: [...document.querySelectorAll('.card button')].every(b=>b.getBoundingClientRect().height>=36),
+  cardRoles: [...document.querySelectorAll('.card')].every(c=>c.getAttribute('role')==='button' && c.tabIndex===0 && c.querySelector('.card-thumb')),
+  noOverflowCards: [...document.querySelectorAll('.card')].every(c=>c.scrollWidth <= c.clientWidth+1),
 })`);
 let shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
 (await import('node:fs')).writeFileSync(OUT390, Buffer.from(shot.result.data, 'base64'));
@@ -368,7 +413,7 @@ shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewpo
 R.notes.viewport390 = small;
 R.notes.viewport1280 = large;
 check('11. 390px tanpa overflow, 1280px grid multi-kolom',
-  small.innerWidth === 390 && small.scrollWidth <= 391 && small.columns === 1 &&
+  small.innerWidth === 390 && small.scrollWidth <= 391 && small.columns === 1 && small.cardRoles && small.noOverflowCards &&
   large.columns > 1 && small.cards === 8 && large.cards === 8,
   JSON.stringify({ small, large }));
 
