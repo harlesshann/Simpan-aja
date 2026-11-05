@@ -26,7 +26,7 @@ export function createCardEl(bookmark, collectionName, sourceLabel, handlers = {
   const link = bookmark.url || '';
 
   const head = el('div', { class: 'card-head' }, [
-    el('h3', { class: 'card-title', text: bookmark.title }),
+    el('h3', { class: 'card-title', text: bookmark.title || sourceLabel || '' }),
     el('span', { class: `badge badge-${bookmark.type}`, text: TYPE_LABELS[bookmark.type] || bookmark.type }),
   ]);
 

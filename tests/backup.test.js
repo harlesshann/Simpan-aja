@@ -74,9 +74,24 @@ test('duplicateKey: url dinormalisasi', () => {
   );
 });
 
-test('duplicateKey: command pakai judul + isi', () => {
+test('duplicateKey: command tidak bergantung judul', () => {
   assert.equal(
-    duplicateKey({ type: 'command', title: ' FFmpeg ', command: 'ls -la' }),
-    duplicateKey({ type: 'command', title: 'ffmpeg', command: 'ls -la' }),
+    duplicateKey({ type: 'command', title: 'A', command: 'ls -la' }),
+    duplicateKey({ type: 'command', title: 'B', command: 'ls -la' }),
   );
+});
+
+test('import tanpa judul menurunkan judul dari URL', () => {
+  const text = JSON.stringify({
+    app: 'SimpanAja', version: 1, exportedAt: '2026-11-05T00:00:00.000Z',
+    collections: [],
+    bookmarks: [{
+      id: 'bx', title: '', type: 'repo', url: 'https://github.com/owner/repo',
+      command: null, collectionId: null, note: '',
+      createdAt: '2026-11-01T00:00:00.000Z', updatedAt: '2026-11-01T00:00:00.000Z',
+    }],
+  });
+  const r = planImport(text, { bookmarks: [], collections: [] }, idGen);
+  assert.equal(r.ok, true);
+  assert.equal(r.addBookmarks[0].title, 'owner/repo');
 });

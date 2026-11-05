@@ -53,6 +53,52 @@ export function sourceLabel(rawUrl) {
   return host;
 }
 
+const LOCALE_SEG = /^(en|en-us|en-gb|id|id-id|in|de|fr|es|ja|ko|pt|pt-br|ru|zh)$/i;
+const HASHY_SEG = /^[0-9a-f]{8,}$/i;
+
+const humanizeSeg = (seg) => seg
+  .replace(/[-_+]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .replace(/(^|\s)(\S)/g, (_, a, b) => a + b.toUpperCase());
+
+function youtubeId(u) {
+  if (hostMatches(bareHost(u), 'youtu.be')) return u.pathname.replace(/^\/+/, '').split('/')[0] || '';
+  if (u.pathname.startsWith('/shorts/')) return u.pathname.split('/')[2] || '';
+  return u.searchParams.get('v') || '';
+}
+
+// Judul otomatis, murni dari URL/teks command — tidak pernah mengambil dari jaringan (SPECS §4).
+export function deriveTitle({ type, url, command } = {}) {
+  if (type === 'command') {
+    const firstLine = String(command || '').split(/\r?\n/)[0].trim().replace(/\s+/g, ' ');
+    return firstLine.slice(0, 60);
+  }
+  if (!isValidHttpUrl(url)) return '';
+  const u = new URL(url);
+  const host = bareHost(u);
+
+  if (hostMatches(host, 'youtube.com') || hostMatches(host, 'youtu.be')) {
+    return `YouTube — ${youtubeId(u) || host}`;
+  }
+  for (const [h, label] of HOST_LABEL) {
+    if (h === 'chromewebstore.google.com' && hostMatches(host, h)) return 'Chrome Web Store';
+    if (h === 'addons.mozilla.org' && hostMatches(host, h)) return 'Firefox Add-ons';
+  }
+  if (hostMatches(host, 'github.com')) {
+    const [owner, repo] = u.pathname.replace(/^\/+|\/+$/g, '').split('/');
+    if (owner && repo) return `${owner}/${repo}`;
+  }
+
+  const words = u.pathname.split('/')
+    .filter(Boolean)
+    .filter((s) => s.length > 1 && !/^\d+$/.test(s) && !LOCALE_SEG.test(s) && !HASHY_SEG.test(s))
+    .slice(-3)
+    .map(humanizeSeg)
+    .filter(Boolean);
+  return words.length ? words.join(' ') : host;
+}
+
 export function normalizeUrl(rawUrl) {
   if (!isValidHttpUrl(rawUrl)) return null;
   const u = new URL(rawUrl);

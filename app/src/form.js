@@ -1,5 +1,5 @@
 import { TYPES, TYPE_LABELS } from './constants.js';
-import { detectType } from './detect.js';
+import { detectType, deriveTitle } from './detect.js';
 import { findDuplicate } from './backup.js';
 
 function el(tag, props = {}, children = []) {
@@ -103,12 +103,11 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
   form.onsubmit = (e) => {
     e.preventDefault();
     const type = fType.value;
-    const title = fTitle.value.trim();
     const url = type === 'command' ? null : fUrl.value.trim();
     const command = type === 'command' ? fCommand.value : null;
     const note = fNote.value.trim();
+    const rawTitle = fTitle.value.trim();
 
-    if (!title) return showError('Judul wajib diisi.');
     if (type === 'command') {
       if (!command || !command.trim()) return showError('Command wajib diisi.');
     } else {
@@ -129,8 +128,8 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
     const now = new Date().toISOString();
     const bookmark = mode === 'edit'
-      ? { ...initial, title, type, url, command, note, id: initial.id, createdAt: initial.createdAt, updatedAt: now }
-      : { id: crypto.randomUUID(), title, type, url, command, note, createdAt: now, updatedAt: now };
+      ? { ...initial, title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, id: initial.id, createdAt: initial.createdAt, updatedAt: now }
+      : { id: crypto.randomUUID(), title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, createdAt: now, updatedAt: now };
 
     if (collectionId) bookmark.collectionId = collectionId;
     else if (fCollection.value === '__new__') bookmark.collectionId = null;
@@ -139,7 +138,7 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
     const dup = findDuplicate(bookmarks, bookmark, mode === 'edit' ? initial.id : undefined);
     if (dup) {
-      const ok = window.confirm(`Sudah ada item dengan alamat/command sama: "${dup.title}". Tetap simpan?`);
+      const ok = window.confirm(`Sudah ada item dengan alamat/command sama: "${dup.title || dup.url || dup.command}". Tetap simpan?`);
       if (!ok) return;
     }
 

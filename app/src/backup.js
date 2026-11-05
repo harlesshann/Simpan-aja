@@ -1,9 +1,9 @@
 import { TYPES } from './constants.js';
-import { normalizeUrl, isValidHttpUrl } from './detect.js';
+import { normalizeUrl, isValidHttpUrl, deriveTitle } from './detect.js';
 
 // Kunci duplikat bersama untuk tambah manual, link Muse, dan import.
 export function duplicateKey(b) {
-  if (b.type === 'command') return 'cmd:' + b.title.trim().toLowerCase() + '|' + b.command;
+  if (b.type === 'command') return 'cmd:' + String(b.command).trim();
   return 'url:' + normalizeUrl(b.url);
 }
 
@@ -55,8 +55,8 @@ export function planImport(text, existing, makeId = () => crypto.randomUUID()) {
     }
   }
   for (const b of data.bookmarks) {
-    if (!b || typeof b.title !== 'string' || !b.title.trim()) {
-      return { ok: false, error: 'Ada bookmark tanpa judul.' };
+    if (!b || (b.title != null && typeof b.title !== 'string')) {
+      return { ok: false, error: 'Ada bookmark dengan judul yang tidak valid.' };
     }
     if (!TYPES.includes(b.type)) {
       return { ok: false, error: 'Ada bookmark dengan tipe tidak dikenal.' };
@@ -107,7 +107,7 @@ export function planImport(text, existing, makeId = () => crypto.randomUUID()) {
   for (const b of data.bookmarks) {
     const candidate = {
       id: b.id,
-      title: b.title.trim(),
+      title: (typeof b.title === 'string' && b.title.trim()) ? b.title.trim() : deriveTitle(b),
       type: b.type,
       url: b.type === 'command' ? null : b.url,
       command: b.type === 'command' ? b.command : null,

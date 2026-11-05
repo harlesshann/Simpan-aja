@@ -94,7 +94,7 @@ Lima kelas masukan/kegagalan yang paling mungkin menggigit pengguna, masing-masi
 
 \*\*Interfaces:\*\*
 
-- Produces: `TYPES`, `TYPE_LABELS`, `MAX_ADD_PAYLOAD_CHARS = 2000`, `DB_NAME = 'simpanaja'`, `DB_VERSION = 1` (dari `constants.js`); `detectType(rawUrl) -> type | null`, `sourceLabel(rawUrl) -> string`, `normalizeUrl(rawUrl) -> string | null`, `isValidHttpUrl(rawUrl) -> boolean` (dari `detect.js`). Task 5, 6, 8, 11 mengonsumsi nama-nama ini persis.
+- Produces: `TYPES`, `TYPE_LABELS`, `MAX_ADD_PAYLOAD_CHARS = 2000`, `DB_NAME = 'simpanaja'`, `DB_VERSION = 1` (dari `constants.js`); `detectType(rawUrl) -> type | null`, `sourceLabel(rawUrl) -> string`, `normalizeUrl(rawUrl) -> string | null`, `isValidHttpUrl(rawUrl) -> boolean`, `deriveTitle({ type, url, command }) -> string` (dari `detect.js`). Task 5, 6, 8, 11 mengonsumsi nama-nama ini persis.
 
 - \[ \] \*\*Step 1: Tulis tes yang gagal\*\* — `tests/detect.test.js` (node:test + assert) menegaskan nilai spec §8.3 persis:
 
@@ -128,7 +128,7 @@ assert.equal(isValidHttpUrl('[ftp://example.com](ftp://example.com)'), false);
 
 - \[ \] \*\*Step 2: Jalankan tes, pastikan gagal\*\* — Run: `node --test tests/detect.test.js` — Expected: FAIL (modul belum ada).
 
-- \[ \] \*\*Step 3: Implementasikan\*\* `constants.js` dan `detect.js` sesuai tanda tangan di atas. `normalizeUrl` hanya melakukan: skema &amp; host huruf kecil, buang awalan `www.` pada host, buang trailing slash pada path; query dipertahankan apa adanya; URL tidak valid → `null`. Tabel host→tipe dan host→label persis seperti SPECS §8.3.
+- \[ \] \*\*Step 3: Implementasikan\*\* `constants.js` dan `detect.js` sesuai tanda tangan di atas. `normalizeUrl` hanya melakukan: skema &amp; host huruf kecil, buang awalan `www.` pada host, buang trailing slash pada path; query dipertahankan apa adanya; URL tidak valid → `null`. Tabel host→tipe dan host→label persis seperti SPECS §8.3. `deriveTitle` mengikuti tabel SPECS §8.4 (murni, tanpa jaringan).
 
 - \[ \] \*\*Step 4: Jalankan tes, pastikan lulus\*\* — Run: `node --test tests/detect.test.js` — Expected: PASS semua.
 
@@ -236,7 +236,7 @@ assert.deepEqual(previewFor({ type: 'website', url: '[https://example.com](https
 
 - Consumes: `MAX_ADD_PAYLOAD_CHARS`, `TYPES` (Task 1); `isValidHttpUrl` (Task 1).
 
-- Produces: `encodeAddPayload(obj) -> string` (melempar `RangeError` bila JSON &gt; 2.000 karakter) dan `decodeAddPayload(str) -> { ok: true, value } | { ok: false, error: 'invalid' | 'too_long' | 'bad_url' | 'bad_type' }`. `value` ternormalisasi: `{ title, url, type, command, collection, note }` dengan field tak relevan bernilai `null`. Task 11 mengonsumsi ini.
+- Produces: `encodeAddPayload(obj) -> string` (melempar `RangeError` bila JSON &gt; 2.000 karakter) dan `decodeAddPayload(str) -> { ok: true, value } | { ok: false, error: 'invalid' | 'too_long' | 'bad_url' | 'bad_type' }`. `value` ternormalisasi: `{ title, url, type, command, collection, note }` dengan field tak relevan bernilai `null`; `title` boleh `''` (opsional). Task 11 mengonsumsi ini.
 
 - \[ \] \*\*Step 1: Tulis tes yang gagal\*\*:
 
@@ -264,7 +264,7 @@ assert.equal(decodeAddPayload(encodeRaw({ v: 1, title: 'X', type: 'command', com
 
 - \[ \] \*\*Step 2: Jalankan, pastikan gagal\*\* — `node --test tests/codec.test.js`.
 
-- \[ \] \*\*Step 3: Implementasikan\*\* codec dengan `TextEncoder`/`TextDecoder` + base64url manual (tanpa `btoa` mentah agar UTF-8 aman). Validasi decode: JSON parse → `v === 1` → `title` string tidak kosong → `type` ∈ `TYPES` → untuk `type === 'command'` wajib `command` tidak kosong, selain itu `url` wajib lolos `isValidHttpUrl`; panjang JSON hasil decode &gt; `MAX_ADD_PAYLOAD_CHARS` → `too_long`. Urutan pemeriksaan: `invalid` (struktur/base64/JSON/`v`/judul) → `too_long` → `bad_type` → `bad_url`.
+- \[ \] \*\*Step 3: Implementasikan\*\* codec dengan `TextEncoder`/`TextDecoder` + base64url manual (tanpa `btoa` mentah agar UTF-8 aman). Validasi decode: JSON parse → `v === 1` → `title` **opsional** (bila ada wajib string; selain itu diturunkan §8.4) → `type` ∈ `TYPES` → untuk `type === 'command'` wajib `command` tidak kosong, selain itu `url` wajib lolos `isValidHttpUrl`; panjang JSON hasil decode &gt; `MAX_ADD_PAYLOAD_CHARS` → `too_long`. Urutan pemeriksaan: `invalid` (struktur/base64/JSON/`v`/tipe `title` salah) → `too_long` → `bad_type` → `bad_url`.
 
 - \[ \] \*\*Step 4: Jalankan, pastikan lulus\*\* — Expected: PASS.
 
@@ -284,7 +284,7 @@ assert.equal(decodeAddPayload(encodeRaw({ v: 1, title: 'X', type: 'command', com
 
 - Produces: `buildExport({ bookmarks, collections }, now) -> { data, filename }` dengan `data` persis format SPECS §7.8, dan `planImport(text, existing, makeId) -> { ok: false, error: string } | { ok: true, addCollections, addBookmarks, skippedDuplicates, newCollections }` — murni, tidak menyentuh DB. `makeId: () => string` disuntikkan pemanggil. Task 11 mengonsumsi keduanya.
 
-- Kunci duplikat bersama (dipakai juga Task 8): export juga `duplicateKey(bookmark) -> string` = `'url:' + normalizeUrl(url)` untuk tipe berbasis link, `'cmd:' + title.trim().toLowerCase() + '|' + command` untuk Command, dan `findDuplicate(bookmarks, candidate) -> Bookmark | undefined`.
+- Kunci duplikat bersama (dipakai juga Task 8): export juga `duplicateKey(bookmark) -> string` = `'url:' + normalizeUrl(url)` untuk tipe berbasis link, `'cmd:' + command` untuk Command (tidak bergantung judul, karena judul kini opsional), dan `findDuplicate(bookmarks, candidate) -> Bookmark | undefined`.
 
 - \[ \] \*\*Step 1: Tulis tes yang gagal\*\*:
 
@@ -390,13 +390,13 @@ assert.equal(r2.addBookmarks.length, 0); assert.equal(r2.skippedDuplicates, 1);
 
 \*\*Interfaces:\*\*
 
-- Consumes: `detectType` (Task 1), `findDuplicate` (Task 5), `putBookmark/deleteBookmark` (Task 6).
+- Consumes: `detectType`, `deriveTitle` (Task 1), `findDuplicate` (Task 5), `putBookmark/deleteBookmark` (Task 6).
 
 - Produces: `openBookmarkForm({ mode, initial, collections, onSave })` dari `form.js` — `initial` adalah bookmark/parsial awal (dipakai Task 11 untuk hasil decode link Muse); `onSave(bookmark)` dipanggil hanya setelah validasi &amp; (bila duplikat) konfirmasi pengguna.
 
-- \[ \] \*\*Step 1: Tulis pemeriksaan yang gagal\*\* — skenario SPECS §10.1, 10.2, 10.10: tambah satu item per tipe (Command tanpa kolom URL, kolom command monospace tampil); tempel link GitHub → tipe berubah Repo, YouTube → Video, Chrome Web Store → Extension, situs biasa → Website; ganti tipe manual lalu tempel link lain → tipe \*\*tidak\*\* ditimpa deteksi; simpan URL yang sama dua kali → peringatan menyebut judul item lama dengan pilihan `Tetap Simpan`/`Batal`; edit mengubah judul &amp; `updatedAt` tetapi bukan `createdAt`; hapus meminta konfirmasi.
+- \[ \] \*\*Step 1: Tulis pemeriksaan yang gagal\*\* — skenario SPECS §10.1, 10.2, 10.10: tambah satu item per tipe (Command tanpa kolom URL, kolom command monospace tampil); tempel link GitHub → tipe berubah Repo, YouTube → Video, Chrome Web Store → Extension, situs biasa → Website; ganti tipe manual lalu tempel link lain → tipe \*\*tidak\*\* ditimpa deteksi; simpan URL yang sama dua kali → peringatan menyebut judul item lama (atau URL/command bila kosong) dengan pilihan `Tetap Simpan`/`Batal`; **tambah dengan kolom judul dikosongkan → judul diturunkan otomatis (SPECS §8.4)**; edit mengubah judul &amp; `updatedAt` tetapi bukan `createdAt`; hapus meminta konfirmasi.
 
-- \[ \] \*\*Step 2: Implementasikan\*\* `form.js`: modal satu formulir untuk tambah &amp; edit; paste/ketik URL menjalankan `detectType` hanya selama pengguna belum menyentuh pemilih tipe pada sesi formulir itu; validasi judul wajib + URL http(s) wajib (kecuali Command: command wajib) dengan pesan Bahasa Indonesia di dekat kolom; saat simpan, `findDuplicate` (mengabaikan item yang sedang diedit) → dialog peringatan duplikat bila ditemukan; id baru via `crypto.randomUUID()`; `createdAt`/`updatedAt` ISO sekarang.
+- \[ \] \*\*Step 2: Implementasikan\*\* `form.js`: modal satu formulir untuk tambah &amp; edit; paste/ketik URL menjalankan `detectType` hanya selama pengguna belum menyentuh pemilih tipe pada sesi formulir itu; validasi URL http(s) wajib (kecuali Command: command wajib), judul **opsional** — bila kosong diisi `deriveTitle` (§8.4) saat simpan, dengan pesan Bahasa Indonesia di dekat kolom; saat simpan, `findDuplicate` (mengabaikan item yang sedang diedit) → dialog peringatan duplikat bila ditemukan; id baru via `crypto.randomUUID()`; `createdAt`/`updatedAt` ISO sekarang.
 
 - \[ \] \*\*Step 3: Jalankan pemeriksaan, pastikan lulus\*\* — semua skenario Step 1, termasuk judul berisi `<img src=x onerror=alert(1)>` tampil sebagai teks polos di kartu (Review Focus 4).
 

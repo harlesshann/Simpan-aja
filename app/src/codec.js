@@ -59,7 +59,10 @@ export function decodeAddPayload(str) {
     return { ok: false, error: 'invalid' };
   }
 
-  if (!obj || obj.v !== 1 || typeof obj.title !== 'string' || !obj.title.trim()) {
+  if (!obj || obj.v !== 1) {
+    return { ok: false, error: 'invalid' };
+  }
+  if (obj.title != null && typeof obj.title !== 'string') {
     return { ok: false, error: 'invalid' };
   }
 
@@ -80,7 +83,7 @@ export function decodeAddPayload(str) {
   return {
     ok: true,
     value: {
-      title: obj.title.trim(),
+      title: typeof obj.title === 'string' ? obj.title.trim() : '',
       url: isCommand ? null : url,
       type: obj.type,
       command: isCommand ? command : null,

@@ -59,3 +59,15 @@ test('decode payload terlalu panjang menolak too_long', () => {
 test('command kosong ditolak', () => {
   assert.equal(decodeAddPayload(encodeRaw({ v: 1, title: 'X', type: 'command' })).error, 'invalid');
 });
+
+test('judul kosong diterima dan dinormalisasi', () => {
+  const r = decodeAddPayload(encodeRaw({ v: 1, url: 'https://a.com', type: 'website' }));
+  assert.deepEqual(r, {
+    ok: true,
+    value: { title: '', url: 'https://a.com', type: 'website', command: null, collection: null, note: null },
+  });
+});
+
+test('judul bukan string ditolak', () => {
+  assert.equal(decodeAddPayload(encodeRaw({ v: 1, title: 42, url: 'https://a.com', type: 'website' })).error, 'invalid');
+});

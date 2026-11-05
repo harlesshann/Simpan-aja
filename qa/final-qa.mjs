@@ -298,6 +298,30 @@ check('13. tabrakan id -> id baru, createdAt asli dipertahankan',
   collision.added && collision.idChanged && collision.createdAt === '2020-01-01T00:00:00.000Z' && collision.total === 8,
   JSON.stringify(collision));
 
+// ---------- Optional title: add with URL only ----------
+const onlyUrl = await evaluate(`(async()=>{
+  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+  const q = (s)=>document.querySelector(s);
+  window.confirm = () => true;
+  q('#btnAdd').click(); await sleep(40);
+  q('#fTitle').value = '';
+  q('#fUrl').value = 'https://web.dev/learn/css/grid';
+  q('#fUrl').dispatchEvent(new Event('input', { bubbles:true }));
+  await sleep(30);
+  q('#bookmarkForm').requestSubmit(); await sleep(150);
+  const db = await import('/src/db.js');
+  const item = (await db.listBookmarks()).find(b=>b.url==='https://web.dev/learn/css/grid');
+  const card = [...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-url')?.textContent==='https://web.dev/learn/css/grid');
+  const title = item?.title;
+  const cardTitle = card?.querySelector('.card-title')?.textContent;
+  if (item) await db.deleteBookmark(item.id);
+  return { title, cardTitle };
+})()`);
+R.notes.onlyUrl = onlyUrl;
+check('O1. kolom judul dikosongkan -> judul diturunkan dari URL',
+  onlyUrl.title === 'Learn Css Grid' && onlyUrl.cardTitle === 'Learn Css Grid',
+  JSON.stringify(onlyUrl));
+
 // ---------- Criterion 12: network audit on load + local interactions ----------
 requests.length = 0;
 await navFresh(APP);

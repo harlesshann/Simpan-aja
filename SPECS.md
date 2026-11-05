@@ -114,7 +114,7 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
   2. \*\*Tipe ditebak otomatis dari domain link\*\* (aturan di §8.3); pengguna dapat mengganti tebakan lewat pemilih tipe kapan pun. Deteksi otomatis hanya mengubah tipe selama pengguna belum mengganti tipe secara manual dalam sesi formulir yang sama. \*\*\[Usulan Harless\]\*\*
 
-  3. Pengguna mengisi \*\*judul\*\* (wajib, singkat, isi sendiri — v1 tidak mengambil judul otomatis).
+  3. Pengguna boleh mengisi \*\*judul\*\* (opsional). Bila dikosongkan, aplikasi menurunkan judul otomatis dari URL / teks command secara lokal (§8.4) — \*\*tanpa\*\* panggilan jaringan.
 
   4. \*\*Catatan\*\* opsional: alasan/konteks kenapa item ini berguna (teks bebas, ikut terindeks search).
 
@@ -122,13 +122,13 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
   6. Tombol `Simpan`.
 
-- Validasi: judul wajib; untuk tipe berbasis link, URL wajib dan hanya skema [`http://`/`https://`](http://`/`https://`) yang diterima (skema lain seperti `javascript:` ditolak dengan pesan kesalahan berbahasa Indonesia).
+- Validasi: judul \*\*opsional\*\*; untuk tipe berbasis link, URL wajib dan hanya skema [`http://`/`https://`](http://`/`https://`) yang diterima (skema lain seperti `javascript:` ditolak dengan pesan kesalahan berbahasa Indonesia). Untuk tipe Command, teks command wajib.
 
-- \*\*Peringatan duplikat \[Usulan Harless\]:\*\* bila URL yang sama (setelah normalisasi sederhana: skema/host huruf kecil, `www.` diabaikan, trailing slash diabaikan) sudah tersimpan, tampilkan peringatan menyebut judul item yang sudah ada, dengan pilihan `Tetap Simpan` atau `Batal`.
+- \*\*Peringatan duplikat \[Usulan Harless\]:\*\* bila URL yang sama (setelah normalisasi sederhana: skema/host huruf kecil, `www.` diabaikan, trailing slash diabaikan) sudah tersimpan, tampilkan peringatan menyebut judul item yang sudah ada (atau URL/teks command bila judulnya kosong), dengan pilihan `Tetap Simpan` atau `Batal`.
 
 ### 7.2 Form khusus Command
 
-- Bila tipe = Command, kolom URL \*\*diganti\*\* kolom teks command (multi-baris, font monospace). Kolom command wajib diisi; judul tetap wajib; catatan &amp; Koleksi tetap opsional.
+- Bila tipe = Command, kolom URL \*\*diganti\*\* kolom teks command (multi-baris, font monospace). Kolom command wajib diisi; judul \*\*opsional\*\* (diturunkan dari teks command bila kosong, §8.4); catatan &amp; Koleksi tetap opsional.
 
 - Teks command disimpan dan ditampilkan \*\*sebagai teks biasa (di-escape)\*\*. Aplikasi tidak pernah menjalankan command apa pun.
 
@@ -264,7 +264,7 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
   "v": 1,
 
-  "title": "judul usulan",
+  "title": "judul usulan (opsional; bila kosong diturunkan dari URL)",
 
   "url": "[https://…](https://…)",
 
@@ -348,7 +348,7 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
   - Koleksi dicocokkan berdasarkan \*\*nama\*\* (tidak peka huruf besar/kecil); yang belum ada dibuatkan.
 
-  - Bookmark yang URL-nya (untuk Command: judul + teks command-nya) sudah ada → \*\*dilewati\*\* sebagai duplikat, tidak ditimpa.
+  - Bookmark yang URL-nya (untuk Command: teks command-nya) sudah ada → \*\*dilewati\*\* sebagai duplikat, tidak ditimpa.
 
   - \*\*Identitas &amp; waktu saat import \[Usulan Harless\]:\*\* `id`, `createdAt`, dan `updatedAt` dari file \*\*dipertahankan\*\*, agar restore mempertahankan urutan "terbaru di atas" berdasarkan waktu simpan aslinya dan bukan waktu import. Pengecualian: bila `id` yang masuk sudah dipakai bookmark lain yang *bukan* duplikat menurut aturan di atas, bookmark yang masuk mendapat `id` baru (timestamp-nya tetap dipertahankan). Pemeriksaan duplikat dilakukan sebelum penanganan `id`.
 
@@ -364,7 +364,7 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
 | `id` | String unik dibuat aplikasi (UUID/random) |
 
-| `title` | Wajib, teks |
+| `title` | Teks; opsional di formulir/Muse/import — bila kosong diturunkan otomatis (§8.4) |
 
 | `type` | Enum persis: `video`, `website`, `command`, `repo`, `extension`, `other` |
 
@@ -408,6 +408,21 @@ Tebakan bersifat saran yang dapat diganti pengguna:
 
 Label sumber pada kartu diturunkan dari host: [`github.com`](http://github.com)→"GitHub", [`youtube.com`](http://youtube.com)/[`youtu.be`](http://youtu.be)→"YouTube", [`tiktok.com`](http://tiktok.com)→"TikTok", [`instagram.com`](http://instagram.com)→"Instagram", `threads.*`→"Threads", [`chromewebstore.google.com`](http://chromewebstore.google.com)→"Chrome Web Store", [`addons.mozilla.org`](http://addons.mozilla.org)→"Firefox Add-ons", selain itu hostname apa adanya.
 
+### 8.4 Judul otomatis (lokal, tanpa jaringan)
+
+Bila `title` kosong saat simpan, item dari link Muse tanpa judul, atau import tanpa judul, aplikasi menurunkan judul dari data yang sudah ada. Tidak ada panggilan jaringan dan tidak ada pembacaan halaman sumber (tetap sesuai §4).
+
+| Sumber | Judul |
+|---|---|
+| Repo GitHub `github.com/owner/repo` | `owner/repo` |
+| YouTube (`watch?v=ID`, `youtu.be/ID`, `shorts/ID`) | `YouTube — ID` |
+| Chrome Web Store / Firefox Add-ons | `Chrome Web Store` / `Firefox Add-ons` |
+| Path umum (`web.dev/learn/css/layout`) | `Learn Css Layout` — path di-humanize (`-`/`_`/`+` → spasi, Title Case), maks 3 segmen terakhir, buang segmen locale/angka/hash |
+| Tanpa path bermakna | hostname tanpa `www.` |
+| Command | baris pertama teks command, spasi dirapatkan, dipotong 60 karakter |
+
+Judul hasil turunan disimpan seperti judul biasa dan tetap bisa diedit.
+
 ## 9. Pendekatan yang Dipertimbangkan
 
 ### 9.1 Bentuk aplikasi
@@ -432,7 +447,7 @@ Label sumber pada kartu diturunkan dari host: [`github.com`](http://github.com)�
 
 Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
-1. Menambah satu item untuk \*\*setiap tipe\*\* (termasuk Command tanpa URL) dan semuanya muncul di grid dengan lencana tipe yang benar.
+1. Menambah satu item untuk \*\*setiap tipe\*\* (termasuk Command tanpa URL) dan semuanya muncul di grid dengan lencana tipe yang benar. Bila kolom judul dikosongkan, judul diturunkan otomatis (§8.4) dan tetap tampil di kartu.
 
 2. Menempel link [`github.com`](http://github.com) menebak tipe Repo; link YouTube menebak Video; link Chrome Web Store menebak Extension; link situs biasa menebak Website; tebakan dapat diganti manual.
 
