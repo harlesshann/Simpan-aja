@@ -4,36 +4,15 @@ import { filterBookmarks } from './search.js';
 import { createCardEl, renderCollectionFilter } from './render.js';
 import { openBookmarkForm, openCollectionManager } from './form.js';
 import { openPreview, attachPreview } from './preview.js';
-import { duplicateKey, findDuplicate } from './dupes.js';
+import {
+  listBookmarks, listCollections, putBookmark, deleteBookmark, putCollection, deleteCollectionAndDetach,
+} from './db.js';
+import { buildExport, planImport } from './backup.js';
+import { decodeAddPayload } from './codec.js';
 
-/* ------------------------------------------------------------------
-   ponytail: temporary in-memory store, seeded for UI review.
-   Replace these five functions with db.js (Task 6); move export/import
-   into backup.js (Task 5). No persistence yet, so a reload reseeds.
------------------------------------------------------------------- */
-const iso = (d) => new Date(d).toISOString();
-const store = {
-  collections: [
-    { id: 'c-motion', name: 'Motion Design', createdAt: iso('2026-10-30T08:00:00Z') },
-  ],
-  bookmarks: [
-    { id: 'b-web', title: 'Artikel CSS layout', type: 'website', url: 'https://web.dev/learn/css/layout', command: null, collectionId: null, note: 'contoh situs biasa', createdAt: iso('2026-10-29T09:00:00Z'), updatedAt: iso('2026-10-29T09:00:00Z') },
-    { id: 'b-repo', title: 'Orca video editor', type: 'repo', url: 'https://github.com/stablyai/orca', command: null, collectionId: 'c-motion', note: '', createdAt: iso('2026-10-31T09:00:00Z'), updatedAt: iso('2026-10-31T09:00:00Z') },
-    { id: 'b-cmd', title: 'Konversi audio mp4', type: 'command', url: null, command: 'ffmpeg -i in.mp4 -vn -acodec libmp3lame out.mp3', collectionId: null, note: 'ambil audio saja', createdAt: iso('2026-11-01T09:00:00Z'), updatedAt: iso('2026-11-01T09:00:00Z') },
-    { id: 'b-th', title: 'Teknik color grading', type: 'video', url: 'https://www.threads.com/@x/post/abc', command: null, collectionId: null, note: 'fallback, platform ini blokir embed', createdAt: iso('2026-11-02T09:00:00Z'), updatedAt: iso('2026-11-02T09:00:00Z') },
-    { id: 'b-yt', title: 'Belajar easing dasar', type: 'video', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', command: null, collectionId: 'c-motion', note: 'teknik easing untuk animasi', createdAt: iso('2026-11-03T09:00:00Z'), updatedAt: iso('2026-11-03T09:00:00Z') },
-  ],
-};
-const listBookmarks = async () => [...store.bookmarks];
-const listCollections = async () => [...store.collections];
-const putBookmark = async (b) => { const i = store.bookmarks.findIndex((x) => x.id === b.id); i >= 0 ? (store.bookmarks[i] = b) : store.bookmarks.push(b); };
-const deleteBookmark = async (id) => { store.bookmarks = store.bookmarks.filter((b) => b.id !== id); };
-const putCollection = async (c) => { const i = store.collections.findIndex((x) => x.id === c.id); i >= 0 ? (store.collections[i] = c) : store.collections.push(c); };
-const deleteCollectionAndDetach = async (id) => {
-  store.collections = store.collections.filter((c) => c.id !== id);
-  store.bookmarks = store.bookmarks.map((b) => (b.collectionId === id ? { ...b, collectionId: null } : b));
-};
-/* ------------------------------ end temporary ------------------------------ */
+/* ----------------------------------------------------------------
+   State hidup di IndexedDB lewat db.js; export/import lewat backup.js.
+---------------------------------------------------------------- */
 
 const els = {
   total: document.getElementById('totalCount'),
@@ -90,7 +69,7 @@ function renderEmpty(total) {
     );
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'btn btn-primary'; b.textContent = '+ Tambah';
-    b.onclick = openAdd; els.empty.append(b);
+    b.onclick = () => openAdd(); els.empty.append(b);
     els.empty.hidden = false;
     return;
   }
@@ -148,9 +127,11 @@ async function render() {
   renderChips();
 }
 
-function openAdd() {
+function openAdd(initial = {}, error = '') {
   openBookmarkForm({
     mode: 'add',
+    initial,
+    error,
     collections,
     bookmarks,
     onSave: async (b) => {
@@ -190,15 +171,13 @@ async function resolveNewCollection(b) {
   b.collectionId = c.id;
 }
 
-function downloadExport() {
-  const now = new Date();
-  const stamp = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
-  const data = { app: 'SimpanAja', version: 1, exportedAt: now.toISOString(), collections, bookmarks };
+async function downloadExport() {
+  const { data, filename } = buildExport({ bookmarks, collections });
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `simpanaja-backup-${stamp}.json`;
+  a.download = filename;
   document.body.append(a);
   a.click();
   a.remove();
@@ -207,52 +186,23 @@ function downloadExport() {
 }
 
 async function importFile(file) {
-  let data;
-  try {
-    data = JSON.parse(await file.text());
-  } catch {
-    return toast('File bukan JSON yang valid. Import dibatalkan.');
-  }
-  if (!data || data.app !== 'SimpanAja' || data.version !== 1 || !Array.isArray(data.bookmarks) || !Array.isArray(data.collections)) {
-    return toast('File backup tidak dikenali. Import dibatalkan.');
-  }
+  const plan = planImport(await file.text(), { bookmarks, collections });
+  if (!plan.ok) return toast(`${plan.error} Import dibatalkan.`);
 
-  let added = 0, skipped = 0, newCollections = 0;
-  const idMap = new Map();
-
-  for (const c of data.collections) {
-    let match = collections.find((x) => x.name.toLowerCase() === String(c.name).toLowerCase());
-    if (!match) {
-      match = { id: crypto.randomUUID(), name: String(c.name), createdAt: c.createdAt || new Date().toISOString() };
-      collections.push(match);
-      await putCollection(match);
-      newCollections++;
-    }
-    idMap.set(c.id, match.id);
+  for (const c of plan.addCollections) {
+    collections.push(c);
+    await putCollection(c);
   }
-
-  for (const raw of data.bookmarks) {
-    const b = {
-      id: raw.id, title: String(raw.title || ''), type: raw.type,
-      url: raw.url ?? null, command: raw.command ?? null,
-      collectionId: raw.collectionId ? (idMap.get(raw.collectionId) ?? null) : null,
-      note: raw.note || '',
-      createdAt: raw.createdAt || new Date().toISOString(),
-      updatedAt: raw.updatedAt || raw.createdAt || new Date().toISOString(),
-    };
-    if (findDuplicate(bookmarks, b)) { skipped++; continue; }
-    if (bookmarks.some((x) => x.id === b.id)) b.id = crypto.randomUUID();
+  for (const b of plan.addBookmarks) {
     bookmarks.push(b);
     await putBookmark(b);
-    added++;
   }
-
   await render();
-  toast(`Import selesai: ${added} ditambahkan, ${skipped} dilewati (duplikat), ${newCollections} Koleksi baru dibuat.`);
+  toast(`Import selesai: ${plan.addBookmarks.length} ditambahkan, ${plan.skippedDuplicates} dilewati (duplikat), ${plan.addCollections.length} Koleksi baru dibuat.`);
 }
 
 function wire() {
-  document.getElementById('btnAdd').onclick = openAdd;
+  document.getElementById('btnAdd').onclick = () => openAdd();
   els.search.oninput = () => { state.query = els.search.value; render(); };
 
   els.chips.onclick = (e) => {
@@ -290,5 +240,26 @@ function wire() {
   };
 }
 
+const ADD_ERRORS = {
+  invalid: 'Link Muse tidak valid.',
+  too_long: 'Link Muse lebih dari 2.000 karakter. Pakai Export/Import JSON.',
+  bad_url: 'URL di link Muse tidak valid.',
+  bad_type: 'Tipe di link Muse tidak dikenal.',
+};
+
+function handleAddFragment() {
+  if (!location.hash.startsWith('#add=')) return;
+  const raw = location.hash.slice(5);
+  history.replaceState(null, '', location.pathname + location.search);
+
+  const res = decodeAddPayload(raw);
+  if (!res.ok) {
+    openAdd({}, `${ADD_ERRORS[res.error] || ADD_ERRORS.invalid} Formulir dibuka kosong.`);
+    return;
+  }
+  openAdd(res.value);
+}
+
 wire();
-render();
+await render();
+handleAddFragment();

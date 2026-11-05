@@ -1,6 +1,6 @@
 import { TYPES, TYPE_LABELS } from './constants.js';
 import { detectType } from './detect.js';
-import { findDuplicate } from './dupes.js';
+import { findDuplicate } from './backup.js';
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -55,10 +55,10 @@ function showError(msg) {
 }
 
 // mode: 'add' | 'edit'. `initial` may come from a decoded Muse payload (Task 11).
-export function openBookmarkForm({ mode = 'add', initial = {}, collections = [], bookmarks = [], onSave }) {
+export function openBookmarkForm({ mode = 'add', initial = {}, collections = [], bookmarks = [], error = '', onSave }) {
   fillTypeOptions();
   fillCollectionOptions(collections);
-  showError('');
+  showError(error);
 
   let typeTouched = mode === 'edit' || !!initial.type;
   const isCommand = initial.type === 'command';
