@@ -38,7 +38,7 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
   simpan menambah kartu (5→6) dan menutup dialog; `Esc` menutup preview;
   `scrollWidth === innerWidth === 390` (tanpa overflow mendatar).
 
-## Lanjutan — Task 4, 5, 6, 11
+## Lanjutan — Task 4, 5, 6, 11, 12
 
 - Tes murni diperluas: `tests/codec.test.js` + `tests/backup.test.js`.
   `node --test tests/detect.test.js tests/search.test.js tests/embed.test.js tests/codec.test.js tests/backup.test.js`
@@ -66,18 +66,33 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Bug yang diperbaiki saat wiring: `b.onclick = openAdd` / `btnAdd.onclick = openAdd`
   meneruskan `MouseEvent` sebagai `initial`. Fix: bungkus `() => openAdd()`.
 
+## QA final — 14 kriteria SPECS §10
+
+- `qa/final-qa.mjs` (kriteria 1–7, 10–13 + tangkapan layar + audit jaringan)
+  → **11/11 checks pass**.
+- `qa/export-roundtrip.mjs` (kriteria 9, unduhan nyata via `Browser.setDownloadBehavior`)
+  → PASS: file `simpanaja-backup-2026-11-05.json`, restore ke DB kosong = 3 bookmark +
+  1 Koleksi, import kedua = semua duplikat dilewati.
+- Audit statis: `innerHTML`, `fetch`, `XHR`, `WebSocket`, `sendBeacon` = **tidak ada** di
+  `app/`; URL eksternal hanya host embed di `embed.js`.
+- Tangkapan final: `qa/final-390.png`, `qa/final-1280.png`.
+- Catatan driver (bukan bug aplikasi): chip Video memang mengecualikan Repo di
+  intersection, dan catatan pada data uji ditimpa helper formulir — asersi disesuaikan.
+
+## Hasil akhir
+
+- Rincian per kriteria: `QA-REPORT.md` → **14/14 lulus**.
+- Panduan pengguna: `app/README.md` (Bahasa Indonesia).
+
 ## Berkas
 
-- `app/index.html`, `app/styles.css`
+- `app/index.html`, `app/styles.css`, `app/README.md`
 - `app/src/`: `constants.js`, `detect.js`, `search.js`, `embed.js`, `codec.js`,
   `backup.js`, `db.js`, `render.js`, `form.js`, `preview.js`, `main.js`
 - `tests/`: `detect.test.js`, `search.test.js`, `embed.test.js`, `codec.test.js`,
   `backup.test.js`
-- `qa/`: `task7-390.png`, `task7-1280.png`, `task10-preview.png`, `task10-fallback.png`,
-  `task8-form.png`, `task9-collections.png` + skrip QA (`drive.mjs`, `shot.mjs`,
-  `states.mjs`, `task6-11.mjs`)
-
-## Belum dikerjakan
-
-- Task 12: QA menyeluruh 14 kriteria SPECS §10, `app/README.md`, `QA-REPORT.md`,
-  tangkapan final `qa/final-390.png` & `qa/final-1280.png`.
+- `qa/`: tangkapan (`final-390.png`, `final-1280.png`, `task7-390.png`, `task7-1280.png`,
+  `task10-preview.png`, `task10-fallback.png`, `task8-form.png`, `task9-collections.png`)
+  + skrip QA (`drive.mjs`, `shot.mjs`, `states.mjs`, `task6-11.mjs`, `final-qa.mjs`,
+  `export-roundtrip.mjs`)
+- `QA-REPORT.md` (root, di samping `SPECS.md`/`PLAN.md`)
