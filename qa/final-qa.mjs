@@ -39,6 +39,7 @@ async function nav(url) { await send('Page.navigate', { url }); await sleep(1600
 async function navFresh(url) { await nav('about:blank'); await nav(url); }
 
 await send('Network.enable');
+await send('Network.setCacheDisabled', { cacheDisabled: true });
 await send('Browser.grantPermissions', { origin: 'http://localhost:8000', permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'] });
 await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
 await send('Storage.clearDataForOrigin', { origin: 'http://localhost:8000', storageTypes: 'indexeddb' });

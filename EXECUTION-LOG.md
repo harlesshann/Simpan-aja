@@ -6,6 +6,12 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 
 - Mode antislop: **during** (pilihan sesi).
 - Arah visual: **clean utility** (pilihan sesi). Dial ENERGY 1 / RHYTHM 1 / MOTION 1.
+- **Ruling (revisi):** arah visual diganti ke **neubrutalism** atas permintaan sesi ini.
+  Hanya `app/styles.css` yang berubah: radius 0, border 3px hitam, hard offset shadow,
+  aksen kuning `#ffde00`, heading/utility monospace, latar putih. HTML/JS tak disentuh,
+  jadi perilaku & seluruh lencana tipe tetap. Detector impeccable: hanya advisory
+  `hard-offset-shadow` (memang disengaja pada neubrutalism); warning `cream-palette`
+  dihapus dengan mengganti latar krem → putih.
 - **Ruling:** lingkup diminta "UI dulu saja", tetapi `render/form/main` mengimpor
   `detect/search/embed` saat load. Tanpa modul itu halaman kosong dan UI tak bisa
   diverifikasi. Maka 3 modul murni tipis itu (`constants/detect/search/embed`) ikut

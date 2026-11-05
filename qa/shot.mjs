@@ -22,6 +22,9 @@ let id = 0; const pending = new Map();
 ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } };
 const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
 
+await send('Network.enable');
+await send('Network.setCacheDisabled', { cacheDisabled: true });
+await send('Page.reload', { ignoreCache: true });
 await send('Emulation.setDeviceMetricsOverride', { width: WIDTH, height: HEIGHT, deviceScaleFactor: 2, mobile: WIDTH < 600 });
 await new Promise((r) => setTimeout(r, 1500));
 const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
