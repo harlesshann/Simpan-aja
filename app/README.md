@@ -20,7 +20,9 @@ Lalu buka `http://localhost:8000/` (atau alamat kanonis Anda).
 ## Fitur
 
 - **Tambah** (`+ Tambah`): pilih tipe atau biarkan ditebak dari URL. Untuk tipe
-  Command kolom URL diganti kolom command.
+  Command kolom URL diganti kolom command. **Judul opsional** — bila dikosongkan,
+  aplikasi menurunkan judul dari URL/teks command secara lokal (tanpa jaringan);
+  judul hasil turunan tetap bisa diedit nanti.
 - **Tipe:** Video, Website, Command, Repo GitHub, Extension, Lainnya.
 - **Search:** mencari di judul, catatan, URL, isi command, dan nama Koleksi.
   Semua kata harus cocok (AND).

@@ -85,6 +85,25 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Catatan driver (bukan bug aplikasi): chip Video memang mengecualikan Repo di
   intersection, dan catatan pada data uji ditimpa helper formulir — asersi disesuaikan.
 
+## Perubahan pasca-QA: judul opsional + judul otomatis (SPECS §8.4)
+
+- Permintaan: saat menambah bookmark cukup link; judul tidak wajib.
+- **Ruling A (disetujui):** judul diturunkan **lokal dari URL/teks command**, tanpa
+  jaringan. Usulan mengambil deskripsi/caption YouTube/TikTok/Threads/Instagram
+  **ditolak** — CORS, tidak ada endpoint publik, platform butuh login; hanya bisa
+  dengan backend proxy + kunci API, yang melanggar SPECS §4/§6. Jalur resmi tetap
+  Muse: caption masuk lewat field `note` di payload `#add=`.
+- Kode: `deriveTitle({ type, url, command })` di `detect.js`; `form.js` label
+  "Judul (opsional)" + isi otomatis saat simpan; `render.js` guard judul kosong;
+  `backup.js` derive saat import + `duplicateKey` Command jadi `cmd:<command>`;
+  `codec.js` `title` opsional. HTML hanya berubah pada label.
+- Tes: **36 pass, 0 fail** (detect 11, search 3, embed 3, codec 12, backup 7).
+- QA: `qa/final-qa.mjs` **12/12 pass**, termasuk kasus baru
+  "kolom judul dikosongkan → judul diturunkan dari URL" (`https://web.dev/learn/css/grid`
+  → `Learn Css Grid`) dan kriteria lama tetap lulus.
+- Dokumen acuan diperbarui: `SPECS.md` §7.1, §7.2, §7.7, §7.8, §8.1, §8.4, §10.1;
+  `PLAN.md` Task 1, 4, 5, 8.
+
 ## Hasil akhir
 
 - Rincian per kriteria: `QA-REPORT.md` → **14/14 lulus**.
