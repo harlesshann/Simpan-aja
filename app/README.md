@@ -30,8 +30,10 @@ Lalu buka `http://localhost:8000/` (atau alamat kanonis Anda).
 - **Koleksi:** buat/rename/hapus lewat tombol `Kelola`. Menghapus Koleksi
   **tidak** menghapus bookmark-nya; itemnya pindah ke `Belum Dikoleksi`.
 - **Kartu:** tiap kartu menampilkan **thumbnail konten** — thumbnail asli YouTube
-  untuk video YouTube, favicon situs untuk link lain, tile lokal berwarna sesuai tipe
-  untuk Command/TikTok/Instagram/Threads dan bila gambar gagal dimuat. Kartu bisa
+  untuk video YouTube, favicon situs untuk link lain, **poster lokal otomatis** untuk
+  TikTok/Instagram/Threads (bar chrome palsu + nama platform + judul, dibuat lokal
+  tanpa jaringan), dan tile lokal berwarna sesuai tipe untuk Command atau bila gambar
+  gagal dimuat. Kartu bisa
   diklik (atau `Enter`/`Space` saat difokus) untuk membuka **detail**.
 - **Detail (modal):** thumbnail besar, lencana tipe, judul, sumber, URL/command,
   Koleksi, catatan, tanggal, dan semua aksi: `Buka`, `Copy`, `Preview`, `Edit`,

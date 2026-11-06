@@ -1,5 +1,6 @@
 import { TYPE_LABELS } from './constants.js';
 import { thumbnailFor } from './thumbnail.js';
+import { posterDataUrl } from './poster.js';
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -34,6 +35,13 @@ export function createThumbEl(bookmark, sourceLabelText) {
   const wrap = el('div', { class: 'card-thumb thumb-' + t.kind });
   if (t.kind === 'local') {
     wrap.append(localTile(t.label, bookmark.type));
+  } else if (t.kind === 'poster') {
+    const img = el('img', {
+      class: 'card-thumb-img', src: posterDataUrl(bookmark, t.platform), alt: '',
+      loading: 'lazy', referrerpolicy: 'no-referrer',
+    });
+    img.onerror = () => wrap.replaceChildren(localTile(t.platform, bookmark.type));
+    wrap.append(img);
   } else {
     const img = el('img', {
       class: 'card-thumb-img', src: t.src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer',

@@ -72,7 +72,9 @@ Lima kelas masukan/kegagalan yang paling mungkin menggigit pengguna, masing-masi
 
 - `app/src/render.js` — bangun elemen kartu (thumbnail + lencana + judul + meta) &amp; daftar Koleksi dari data (DOM aman, tanpa `innerHTML` untuk data pengguna); kartu = tombol pembuka detail.
 
-- `app/src/thumbnail.js` — pilih sumber gambar thumbnail per bookmark (YouTube asli / favicon / tile lokal); satu-satunya modul yang menyusun URL gambar eksternal.
+- `app/src/thumbnail.js` — pilih sumber gambar thumbnail per bookmark (YouTube asli / favicon / poster lokal / tile lokal); satu-satunya modul yang menyusun URL gambar eksternal.
+
+- `app/src/poster.js` — poster SVG lokal deterministik untuk platform tertutup (TikTok/Instagram/Threads): bar chrome palsu + hostname + nama platform + judul. Tanpa jaringan, tanpa input pengguna.
 
 - `app/src/detail.js` — modal detail terpusat: isi lengkap satu bookmark + semua aksi (Buka/Copy/Preview/Edit/Hapus/Tutup).
 
@@ -500,7 +502,7 @@ assert.equal(r2.addBookmarks.length, 0); assert.equal(r2.skippedDuplicates, 1);
 
 ## Self-Review (diisi penulis plan, 2026-11-03)
 
-- \*\*Cakupan spec:\*\* §7.1 → Task 8 (+ deteksi Task 1); §7.2 → Task 8 &amp; render Task 7; §7.3 → Task 7, `detail.js`, `thumbnail.js`; §7.4 → Task 2 &amp; 7; §7.5 → Task 3 &amp; 10; §7.6 → Task 6 &amp; 9; §7.7 → Task 4 &amp; 11; §7.8 → Task 5 &amp; 11; §8 model data &amp; aturan turunan → Task 1, 5, 6; §6 batasan (jaringan hanya untuk link/embed/thumbnail tersetujui, tanpa PWA, alamat kanonis, Bahasa Indonesia, catatan risiko data lokal yang terlihat di dalam aplikasi) → Global Constraints + Task 7 (catatan di bawah header, tombol header) + Task 10 (modal preview) + audit Task 12; §10 kriteria 1–15 → dipetakan di Step pemeriksaan Task 6–11 dan dilalui utuh di Task 12. Tidak ada persyaratan spec tanpa task.
+- \*\*Cakupan spec:\*\* §7.1 → Task 8 (+ deteksi Task 1); §7.2 → Task 8 &amp; render Task 7; §7.3 → Task 7, `detail.js`, `thumbnail.js`, `poster.js`; §7.4 → Task 2 &amp; 7; §7.5 → Task 3 &amp; 10; §7.6 → Task 6 &amp; 9; §7.7 → Task 4 &amp; 11; §7.8 → Task 5 &amp; 11; §8 model data &amp; aturan turunan → Task 1, 5, 6; §6 batasan (jaringan hanya untuk link/embed/thumbnail tersetujui, tanpa PWA, alamat kanonis, Bahasa Indonesia, catatan risiko data lokal yang terlihat di dalam aplikasi) → Global Constraints + Task 7 (catatan di bawah header, tombol header) + Task 10 (modal preview) + audit Task 12; §10 kriteria 1–15 → dipetakan di Step pemeriksaan Task 6–11 dan dilalui utuh di Task 12. Tidak ada persyaratan spec tanpa task.
 
 - \*\*Konsistensi nama/tipe:\*\* `filterBookmarks`, `previewFor`, `decodeAddPayload`, `planImport`, `findDuplicate`, `openBookmarkForm`, `deleteCollectionAndDetach` dieja sama di bagian Interfaces, langkah task, dan pemakaian lintas task; enum &amp; konstanta hanya didefinisikan di Task 1.
 

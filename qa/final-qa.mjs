@@ -46,7 +46,10 @@ await send('Storage.clearDataForOrigin', { origin: 'http://localhost:8000', stor
 await navFresh(APP);
 
 const R = { checks: [], notes: {} };
-const check = (name, pass, detail) => R.checks.push({ name, pass: !!pass, detail });
+const check = (name, pass, detail) => {
+  console.error(`[check] ${pass ? 'ok  ' : 'FAIL'} ${name}`);
+  R.checks.push({ name, pass: !!pass, detail });
+};
 
 // ---------- Criterion 1: add one item of every type via the form ----------
 const addResult = await evaluate(`(async()=>{
@@ -106,7 +109,8 @@ check('1. semua tipe tampil dengan lencana benar + thumbnail sesuai sumber',
   thumbByTitle['Belajar easing dasar'] === 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' &&
   thumbByTitle['Artikel CSS layout'] === 'https://www.google.com/s2/favicons?domain=web.dev&sz=128' &&
   thumbByTitle['Konversi audio mp4'] === 'Command' &&
-  thumbByTitle['Teknik color grading'] === 'Threads' &&
+  /^data:image\/svg\+xml/.test(thumbByTitle['Teknik color grading'] || '') &&
+  decodeURIComponent(thumbByTitle['Teknik color grading'] || '').includes('Threads') &&
   Object.values(addResult || {}).every(Boolean),
   JSON.stringify({ labelByTitle, thumbByTitle }));
 
@@ -170,6 +174,14 @@ check('4. irisan search+chip+Koleksi dan urutan terbaru',
   JSON.stringify(filtering));
 
 // ---------- Criterion 5: copy exact text via detail modal ----------
+// Clipboard asli menggantung di headless Chrome 156, jadi pakai buffer in-page.
+await evaluate(`(() => {
+  const buf = { text: '' };
+  const c = navigator.clipboard;
+  c.writeText = async (t) => { buf.text = String(t); };
+  c.readText = async () => buf.text;
+  return 'stub';
+})()`);
 const copy = await evaluate(`(async()=>{
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
   const q = (s)=>document.querySelector(s);

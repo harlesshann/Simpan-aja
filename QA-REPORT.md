@@ -9,6 +9,8 @@ Tanggal: 5 November 2026. Spec: `SPECS.md` §10 (15 kriteria).
 - Skrip QA: `qa/task6-11.mjs` (Task 6 & 11), `qa/final-qa.mjs` (kriteria 1–7, 10–13, 15 +
   tangkapan layar + audit jaringan), `qa/export-roundtrip.mjs` (kriteria 9, unduhan nyata).
 - Data pada tangkapan layar adalah data QA yang dibuat skrip, bukan data bawaan aplikasi.
+- Clipboard asli menggantung di headless Chrome 156, jadi kriteria 5 memakai buffer
+  clipboard in-page; aplikasi tidak diubah.
 
 ## Tes otomatis modul murni
 
@@ -16,13 +18,13 @@ Tanggal: 5 November 2026. Spec: `SPECS.md` §10 (15 kriteria).
 node --test tests/detect.test.js tests/search.test.js tests/embed.test.js tests/codec.test.js tests/backup.test.js tests/thumbnail.test.js
 ```
 
-Hasil: **41 pass, 0 fail** (detect, search, embed, codec, backup, thumbnail).
+Hasil: **45 pass, 0 fail** (detect, search, embed, codec, backup, thumbnail+poster).
 
 ## Hasil 15 kriteria
 
 | # | Kriteria | Status | Bukti |
 |---|----------|--------|-------|
-| 1 | Satu item setiap tipe tampil dengan lencana benar + thumbnail sesuai sumber | **Lulus** | `final-qa.mjs` menambah 7 item lewat formulir; lencana: Video, Website, Command, Repo GitHub, Extension, Lainnya sesuai; thumbnail: YouTube → `i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg`, website → favicon `google.com/s2/favicons?domain=web.dev`, Command → tile lokal, Threads → tile lokal. |
+| 1 | Satu item setiap tipe tampil dengan lencana benar + thumbnail sesuai sumber | **Lulus** | `final-qa.mjs` menambah 7 item lewat formulir; lencana: Video, Website, Command, Repo GitHub, Extension, Lainnya sesuai; thumbnail: YouTube → `i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg`, website → favicon `google.com/s2/favicons?domain=web.dev`, Command → tile lokal, Threads → poster SVG lokal (`data:image/svg+xml`, memuat "Threads"). |
 | 2 | Deteksi tipe (GitHub→Repo, YouTube→Video, Web Store→Extension, situs→Website) & bisa diganti manual | **Lulus** | Paste di formulir → `repo`/`video`/`extension`/`website`; set manual `other` dipertahankan. |
 | 3 | Search `ffmpeg` menemukan **isi** command | **Lulus** | Judul "Konversi audio mp4" tidak memuat `ffmpeg`; hasil search = item itu saja. |
 | 4 | Irisan search + chip + Koleksi; kosong = daftar penuh urut terbaru | **Lulus** | chip Video = 2; search `easing` + Video + Koleksi = 1; reset = 7 kartu, teratas "Teknik color grading". |
@@ -60,9 +62,10 @@ Hasil: **41 pass, 0 fail** (detect, search, embed, codec, backup, thumbnail).
   Jalur resminya adalah Muse mengirim ringkasan caption di field `note` pada link
   `#add=`, atau Anda mengetiknya di Catatan.
 - Thumbnail: YouTube memakai gambar asli (`i.ytimg.com`), situs lain favicon
-  (`google.com/s2/favicons`), sisanya tile lokal. Konsekuensi privasi: membuka dashboard
-  mengirim permintaan gambar ke YouTube/Google (dilakukan lazy, hanya untuk kartu yang
-  masuk viewport). TikTok/Instagram/Threads tidak punya thumbnail konten (butuh API/login)
-  → tile lokal.
+  (`google.com/s2/favicons`), Command tile lokal, TikTok/Instagram/Threads poster SVG
+  lokal otomatis. Konsekuensi privasi: membuka dashboard mengirim permintaan gambar ke
+  YouTube/Google (dilakukan lazy, hanya untuk kartu yang masuk viewport). TikTok/
+  Instagram/Threads tidak punya thumbnail konten yang bisa diambil browser (CORS/login
+  wall) → poster dibuat lokal dari URL + judul, tanpa request tambahan.
 - Fitur di luar v1 (login, sync, PWA, tag, Pin, auto-fetch deskripsi/konten halaman,
   analytics) memang tidak ada, sesuai SPECS §4.

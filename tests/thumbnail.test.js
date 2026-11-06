@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { thumbnailFor } from '../app/src/thumbnail.js';
+import { posterSvg, posterDataUrl } from '../app/src/poster.js';
 import { youtubeVideoId } from '../app/src/detect.js';
 
 test('youtubeVideoId: ekstrak ID dari tiga bentuk URL', () => {
@@ -32,13 +33,42 @@ test('situs umum memakai favicon (host tanpa www)', () => {
   );
 });
 
-test('platform embed-tertutup jatuh ke tile lokal', () => {
-  assert.deepEqual(thumbnailFor({ type: 'video', url: 'https://www.threads.com/@x/post/abc' }), { kind: 'local', label: 'Threads' });
-  assert.deepEqual(thumbnailFor({ type: 'video', url: 'https://www.instagram.com/reel/abc/' }), { kind: 'local', label: 'Instagram' });
-  assert.deepEqual(thumbnailFor({ type: 'video', url: 'https://www.tiktok.com/@x/video/123' }), { kind: 'local', label: 'TikTok' });
+test('platform embed-tertutup jatuh ke poster lokal', () => {
+  assert.deepEqual(thumbnailFor({ type: 'video', url: 'https://www.threads.com/@x/post/abc' }), { kind: 'poster', platform: 'Threads' });
+  assert.deepEqual(thumbnailFor({ type: 'video', url: 'https://www.instagram.com/reel/abc/' }), { kind: 'poster', platform: 'Instagram' });
+  assert.deepEqual(thumbnailFor({ type: 'video', url: 'https://www.tiktok.com/@x/video/123' }), { kind: 'poster', platform: 'TikTok' });
 });
 
 test('command dan URL tak valid jatuh ke tile lokal', () => {
   assert.deepEqual(thumbnailFor({ type: 'command', command: 'ls -la' }), { kind: 'local', label: 'Command' });
   assert.deepEqual(thumbnailFor({ type: 'other', url: null }), { kind: 'local', label: 'Bookmark' });
+});
+
+test('posterSvg: platform + host + judul di dalam SVG', () => {
+  const svg = posterSvg({ url: 'https://www.tiktok.com/@x/video/123', title: 'Belajar color grading' }, 'TikTok');
+  assert.ok(svg.includes('>TikTok</text>'));
+  assert.ok(svg.includes('tiktok.com'));
+  assert.ok(svg.includes('Belajar color grading'));
+});
+
+test('posterSvg: judul berbahaya di-escape, tidak dieksekusi', () => {
+  const svg = posterSvg({ url: 'https://www.threads.com/@x/post/1', title: '<script>alert(1)</script>' }, 'Threads');
+  assert.ok(!svg.includes('<script>'));
+  assert.ok(svg.includes('&lt;script&gt;'));
+});
+
+test('posterSvg: deterministik & tema beda per platform', () => {
+  const b = { url: 'https://www.instagram.com/reel/abc/', title: 'Trik' };
+  assert.equal(posterSvg(b, 'Instagram'), posterSvg(b, 'Instagram'));
+  assert.notEqual(posterSvg(b, 'Instagram'), posterSvg(b, 'TikTok'));
+});
+
+test('posterDataUrl: data URI SVG valid & judul panjang maksimal 3 baris', () => {
+  const b = { url: 'https://www.tiktok.com/@x/video/1', title: 'kata '.repeat(40).trim() };
+  const uri = posterDataUrl(b, 'TikTok');
+  assert.ok(uri.startsWith('data:image/svg+xml;charset=utf-8,'));
+  const svg = decodeURIComponent(uri.slice(uri.indexOf(',') + 1));
+  const lines = [...svg.matchAll(/<text class="title"/g)];
+  assert.equal(lines.length, 3);
+  assert.ok(svg.includes('…'));
 });

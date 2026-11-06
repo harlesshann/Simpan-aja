@@ -1,6 +1,12 @@
 import { sourceLabel, youtubeVideoId } from './detect.js';
 
-const CLOSED = ['tiktok.com', 'instagram.com', 'threads.com', 'threads.net'];
+// Platform yang menutup thumbnail/embed -> poster SVG lokal (lihat poster.js).
+const CLOSED = {
+  'tiktok.com': 'TikTok',
+  'instagram.com': 'Instagram',
+  'threads.com': 'Threads',
+  'threads.net': 'Threads',
+};
 
 // Sumber gambar thumbnail per kartu. URL di sini adalah satu-satunya izin jaringan
 // saat render (SPECS §6): YouTube asli + favicon Google, sisanya tile lokal.
@@ -17,8 +23,8 @@ export function thumbnailFor(bookmark) {
 
   if (!host) return { kind: 'local', label: sourceLabel(url) || 'Bookmark' };
 
-  const closed = CLOSED.some((h) => host === h || host.endsWith('.' + h));
-  if (closed) return { kind: 'local', label: sourceLabel(url) };
+  const closed = Object.keys(CLOSED).find((h) => host === h || host.endsWith('.' + h));
+  if (closed) return { kind: 'poster', platform: CLOSED[closed] };
 
   return {
     kind: 'favicon',

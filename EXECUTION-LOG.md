@@ -117,12 +117,30 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
   `createThumbEl`; tombol aksi di kartu dihapus. `preview.js`: `attachPreview`
   dihapus, `openPreview` selalu modal, dipicu dari detail. `main.js`: handler
   `onDetail` + `onDelete` mengembalikan boolean.
-- Tes: **41 pass, 0 fail** (+ `tests/thumbnail.test.js` 7 tes).
+- Tes: **45 pass, 0 fail** (+ `tests/thumbnail.test.js` 9 tes, termasuk poster).
 - QA: `qa/final-qa.mjs` **13/13 checks pass** (kriteria 1–7, 10–13, 15, O1);
   audit jaringan hanya mengizinkan `i.ytimg.com`, `www.google.com/s2/favicons`,
   dan redirect `*.gstatic.com` — 0 request tak terduga.
 - Dokumen diperbarui: `SPECS.md` §6.4, §7.3, §7.5, §10.1/5/7/11/12/15;
   `PLAN.md` struktur file, Task 7/8/10/12.
+
+## Perubahan pasca-QA: poster lokal TikTok/Instagram/Threads
+
+- Permintaan: gambar otomatis untuk TikTok/IG/Threads, dibuat aplikasi (bukan user).
+- Pilihan pengguna: **tanpa backend**, poster lokal; cakupan termasuk IG & Threads.
+- Batas nyata: tangkapan halaman asli mustahil dari browser (CORS, login wall,
+  `X-Frame-Options`). Jadi poster **mirip screenshot** digambar lokal dari URL + judul.
+- Kode baru: `app/src/poster.js` — `posterSvg()`/`posterDataUrl()` murni (SVG,
+  deterministik, `encodeURIComponent`, teks di-escape); `thumbnailFor` mengembalikan
+  `{ kind: 'poster', platform }` untuk TikTok/Instagram/Threads; `createThumbEl`
+  merender `<img src="data:image/svg+xml,...">` dengan fallback tile lokal.
+- Isi poster: bar chrome palsu (3 titik + hostname), wordmark platform (shadow khas
+  TikTok/IG), judul maks 3 baris, pola diagonal halus, rasio 16:9.
+- **Tidak ada amend jaringan:** poster bukan request, SPECS §6.4 tetap sama.
+  `SPECS.md` §7.3 diperjelas (poster vs tile).
+- Tes: **45 pass, 0 fail**; QA **13/13**. Catatan QA: `navigator.clipboard` asli
+  menggantung di headless Chrome 156, jadi kriteria 5 memakai buffer clipboard
+  in-page; aplikasi tidak diubah.
 
 ## Hasil akhir
 
