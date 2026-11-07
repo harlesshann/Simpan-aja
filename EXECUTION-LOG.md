@@ -35,6 +35,9 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
    `form.onsubmit`, dialog tetap terbuka tanpa pesan. Fix: `app/src/id.js` (`newId`
    dari `crypto.getRandomValues` + fallback), dipakai di `form.js`, `main.js` (×2),
    `backup.js`; `onsubmit` di-`await` dan menampilkan pesan bila gagal.
+5. **HP masih memakai JS lama**: `py -m http.server` tak mengirim `Cache-Control`, jadi
+   Chrome Android menyajikan modul dari cache (log: hanya `GET /` 304, nol request
+   `/src/*.js`). Fix: `serve.py` di root proyek — `ThreadingHTTPServer` + `no-store`.
 
 ## Verifikasi
 
@@ -154,7 +157,7 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 
 ## Berkas
 
-- `app/index.html`, `app/styles.css`, `app/README.md`
+- `app/index.html`, `app/styles.css`, `app/README.md`, `serve.py`
 - `app/src/`: `constants.js`, `detect.js`, `search.js`, `embed.js`, `codec.js`,
   `backup.js`, `db.js`, `id.js`, `render.js`, `thumbnail.js`, `poster.js`,
   `detail.js`, `form.js`, `preview.js`, `main.js`

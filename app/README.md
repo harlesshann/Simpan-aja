@@ -5,13 +5,15 @@ tidak ada server, tidak ada sync.
 
 ## Cara membuka
 
-Sajikan folder `app/` lalu buka di browser. Contoh:
+Sajikan folder `app/` lalu buka di browser. Dari root proyek:
 
 ```
-py -m http.server 8000 --directory app
+py serve.py
 ```
 
-Lalu buka `http://localhost:8000/` (atau alamat kanonis Anda).
+Lalu buka `http://localhost:8000/` (atau alamat kanonis Anda). `serve.py` mengirim
+`Cache-Control: no-store`, jadi perubahan kode langsung terpakai setelah reload —
+berbeda dari `py -m http.server` yang membuat browser memakai JS lama dari cache.
 
 > **Penting:** data hanya tersimpan di browser dan alamat yang Anda pakai. Ganti
 > browser, ganti perangkat, atau ganti alamat (port/domain/path) = koleksi tampak
