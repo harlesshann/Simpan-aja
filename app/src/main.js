@@ -34,19 +34,16 @@ const state = { query: '', type: 'all', collection: 'all' };
 let bookmarks = [];
 let collections = [];
 
-/* Sidebar buka/tutup. Desktop: tampil/sembunyi permanen (default tampil).
-   HP: drawer dengan backdrop (default tertutup). */
+/* Sidebar buka/tutup hanya untuk HP: drawer dengan backdrop (default tertutup).
+   Di desktop sidebar selalu tampil biasa, tanpa tombol buka/tutup. */
 const sidebarQuery = window.matchMedia('(min-width: 1024px)');
-let desktopSidebar = true;
 let mobileSidebar = false;
 
 function applySidebar() {
-  const desktop = sidebarQuery.matches;
-  const open = desktop ? desktopSidebar : mobileSidebar;
-  document.body.classList.toggle('is-sidebar-collapsed', desktop && !desktopSidebar);
-  document.body.classList.toggle('is-sidebar-open', !desktop && mobileSidebar);
-  els.toggleSidebar.setAttribute('aria-expanded', String(open));
-  els.backdrop.hidden = desktop || !mobileSidebar;
+  if (sidebarQuery.matches) mobileSidebar = false;
+  document.body.classList.toggle('is-sidebar-open', mobileSidebar);
+  els.toggleSidebar.setAttribute('aria-expanded', String(mobileSidebar));
+  els.backdrop.hidden = !mobileSidebar;
 }
 
 function closeMobileSidebar() {
@@ -325,11 +322,7 @@ function wire() {
   };
 
   window.addEventListener('popstate', route);
-  els.toggleSidebar.onclick = () => {
-    if (sidebarQuery.matches) desktopSidebar = !desktopSidebar;
-    else mobileSidebar = !mobileSidebar;
-    applySidebar();
-  };
+  els.toggleSidebar.onclick = () => { mobileSidebar = !mobileSidebar; applySidebar(); };
   document.getElementById('btnCloseSidebar').onclick = closeMobileSidebar;
   els.backdrop.onclick = closeMobileSidebar;
   sidebarQuery.addEventListener('change', applySidebar);

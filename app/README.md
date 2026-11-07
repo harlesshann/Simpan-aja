@@ -34,8 +34,8 @@ membuat HP memakai JS lama dari cache.
 - **Tipe:** Video, Website, Command, Repo GitHub, Extension, Lainnya.
 - **Search:** mencari di judul, catatan, URL, isi command, dan nama Koleksi.
   Semua kata harus cocok (AND).
-- **Filter:** chip tipe + sidebar Koleksi yang bisa dibuka/tutup lewat tombol
-  `Koleksi` (drawer di HP, sidebar sembunyi di desktop), termasuk `Belum Dikoleksi`.
+- **Filter:** chip tipe + sidebar Koleksi; di HP sidebar jadi drawer yang dibuka
+  lewat tombol `Koleksi` (desktop selalu tampil), termasuk `Belum Dikoleksi`.
 - **Koleksi:** buat/rename/**atur warna**/hapus lewat tombol `Kelola`. Di daftar
   filter, tiap Koleksi tampil sebagai **folder berwarna** (warna dipilih dari palet
   saat membuat atau mengubah Koleksi). Menghapus Koleksi **tidak** menghapus

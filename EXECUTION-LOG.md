@@ -232,3 +232,5 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Desktop (>=1024): sidebar tetap tampil default; tombol Koleksi menyembunyikan/munculkan kembali, grid melebar penuh saat tersembunyi.
 - Logika di `app/src/main.js` (matchMedia 1024, class `is-sidebar-open` / `is-sidebar-collapsed` di body, aria-expanded), markup di `app/index.html` (`#btnToggleSidebar`, `#sidebarBackdrop`, `#btnCloseSidebar`), CSS `app/styles.css`.
 - Tes: 51 pass, 0 fail. QA 14/14 dan 5/5. Bukti: qa/sidebar-mobile-closed.png, qa/sidebar-mobile-open.png, qa/sidebar-desktop-open.png, qa/sidebar-desktop-collapsed.png.
+
+- Revisi: tombol buka/tutup Koleksi hanya untuk HP. Desktop kembali tanpa tombol `Koleksi` - sidebar selalu tampil (default terbuka), grid tetap 2 kolom. Logika desktop-collapse dihapus; sisa drawer HP. Bukti: qa/sidebar-desktop-open.png (tanpa toggle), qa/sidebar-mobile-closed.png, qa/sidebar-mobile-open.png. qa/sidebar-desktop-collapsed.png dihapus.
