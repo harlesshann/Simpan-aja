@@ -3,6 +3,7 @@ import { sourceLabel } from './detect.js';
 import { filterBookmarks } from './search.js';
 import { createCardEl, renderCollectionFilter } from './render.js';
 import { openBookmarkForm, openCollectionManager } from './form.js';
+import { newId } from './id.js';
 import { openPreview } from './preview.js';
 import { openDetail } from './detail.js';
 import {
@@ -170,7 +171,7 @@ async function resolveNewCollection(b) {
   delete b.newCollectionName;
   let c = collections.find((x) => x.name.toLowerCase() === name.toLowerCase());
   if (!c) {
-    c = { id: crypto.randomUUID(), name, createdAt: new Date().toISOString() };
+    c = { id: newId(), name, createdAt: new Date().toISOString() };
     await putCollection(c);
     collections.push(c);
   }
@@ -238,7 +239,7 @@ function wire() {
     for (const b of bookmarks) counts.set(b.collectionId ?? 'none', (counts.get(b.collectionId ?? 'none') || 0) + 1);
     openCollectionManager({
       collections, counts,
-      onCreate: async (name) => { await putCollection({ id: crypto.randomUUID(), name, createdAt: new Date().toISOString() }); },
+      onCreate: async (name) => { await putCollection({ id: newId(), name, createdAt: new Date().toISOString() }); },
       onRename: async (id, name) => { const c = collections.find((x) => x.id === id); await putCollection({ ...c, name }); },
       onDelete: async (id) => { await deleteCollectionAndDetach(id); },
       onChange: () => render(),

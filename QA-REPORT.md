@@ -1,12 +1,12 @@
 # Laporan QA — SimpanAja
 
-Tanggal: 5 November 2026. Spec: `SPECS.md` §10 (15 kriteria).
+Tanggal: 5 November 2026. Spec: `SPECS.md` §10 (16 kriteria).
 
 ## Lingkungan & metode
 
 - Node test runner (`node --test`) untuk modul murni.
 - Chrome headless + Chrome DevTools Protocol (viewport 390px & 1280px emulasi).
-- Skrip QA: `qa/task6-11.mjs` (Task 6 & 11), `qa/final-qa.mjs` (kriteria 1–7, 10–13, 15 +
+- Skrip QA: `qa/task6-11.mjs` (Task 6 & 11), `qa/final-qa.mjs` (kriteria 1-7, 10-13, 15, 16 +
   tangkapan layar + audit jaringan), `qa/export-roundtrip.mjs` (kriteria 9, unduhan nyata).
 - Data pada tangkapan layar adalah data QA yang dibuat skrip, bukan data bawaan aplikasi.
 - Clipboard asli menggantung di headless Chrome 156, jadi kriteria 5 memakai buffer
@@ -18,9 +18,9 @@ Tanggal: 5 November 2026. Spec: `SPECS.md` §10 (15 kriteria).
 node --test tests/detect.test.js tests/search.test.js tests/embed.test.js tests/codec.test.js tests/backup.test.js tests/thumbnail.test.js
 ```
 
-Hasil: **45 pass, 0 fail** (detect, search, embed, codec, backup, thumbnail+poster).
+Hasil: **47 pass, 0 fail** (detect, search, embed, codec, backup, thumbnail+poster, id).
 
-## Hasil 15 kriteria
+## Hasil 16 kriteria
 
 | # | Kriteria | Status | Bukti |
 |---|----------|--------|-------|
@@ -39,9 +39,10 @@ Hasil: **45 pass, 0 fail** (detect, search, embed, codec, backup, thumbnail+post
 | 13 | Import ke data tak kosong mempertahankan `createdAt`; tabrakan `id` → `id` baru | **Lulus** | Import item dengan `id` yang sudah ada tapi URL beda → `id` berubah, `createdAt` asli `2020-01-01T00:00:00.000Z` tetap; urutan daftar tetap berdasar `createdAt`. |
 | 14 | Payload JSON > 2.000 karakter ditolak, diarahkan ke Import JSON | **Lulus** | Pesan: `Link Muse lebih dari 2.000 karakter. Pakai Export/Import JSON. Formulir dibuka kosong.` Fragment dibersihkan. |
 | 15 | Klik kartu membuka modal detail lengkap + semua aksi, Tutup/Esc/backdrop menutup | **Lulus** | `final-qa.mjs`: klik kartu Repo → detail terbuka dengan thumbnail, judul, lencana `Repo GitHub`, URL, aksi `Buka/Copy/Edit/Hapus/Tutup`; Tutup → tertutup. |
+| 16 | Simpan tetap bekerja di origin insecure (tanpa `crypto.randomUUID`, mis. `http://IP`) | **Lulus** | `final-qa.mjs`: `randomUUID` di-null-kan, tambah item → tersimpan (`id` UUID valid), kartu tampil, dialog tertutup, tanpa pesan galat. |
 | O1 | Judul opsional: tambah hanya dengan URL, judul diturunkan otomatis (SPECS §8.4) | **Lulus** | `qa/final-qa.mjs`: formulir disimpan dengan judul kosong, URL `https://web.dev/learn/css/grid` → kartu & DB berjudul `Learn Css Grid`. Unit test `deriveTitle` juga menutup repo/YouTube/path/hash/command. |
 
-**Ringkasan: 15/15 kriteria + O1 lulus.**
+**Ringkasan: 16/16 kriteria + O1 lulus.**
 
 ## Audit keamanan statis
 

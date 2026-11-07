@@ -30,6 +30,11 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 2. Placeholder search `#8b8f96` gagal kontras (3.2:1). Fix: `#62676e`.
 3. Screenshot 390px pertama terpotong karena lebar minimum jendela Chrome headless
    (512px), bukan overflow nyata. Diverifikasi ulang dengan emulasi CDP 390px.
+4. **HP tidak bisa Simpan** (dilaporkan pengguna): `crypto.randomUUID()` hanya ada di
+   secure context; HP lewat `http://192.168.x.x` = insecure → melempar TypeError di
+   `form.onsubmit`, dialog tetap terbuka tanpa pesan. Fix: `app/src/id.js` (`newId`
+   dari `crypto.getRandomValues` + fallback), dipakai di `form.js`, `main.js` (×2),
+   `backup.js`; `onsubmit` di-`await` dan menampilkan pesan bila gagal.
 
 ## Verifikasi
 
@@ -117,7 +122,7 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
   `createThumbEl`; tombol aksi di kartu dihapus. `preview.js`: `attachPreview`
   dihapus, `openPreview` selalu modal, dipicu dari detail. `main.js`: handler
   `onDetail` + `onDelete` mengembalikan boolean.
-- Tes: **45 pass, 0 fail** (+ `tests/thumbnail.test.js` 9 tes, termasuk poster).
+- Tes: **47 pass, 0 fail** (+ `tests/thumbnail.test.js` 9 tes, termasuk poster).
 - QA: `qa/final-qa.mjs` **13/13 checks pass** (kriteria 1–7, 10–13, 15, O1);
   audit jaringan hanya mengizinkan `i.ytimg.com`, `www.google.com/s2/favicons`,
   dan redirect `*.gstatic.com` — 0 request tak terduga.
@@ -144,17 +149,17 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 
 ## Hasil akhir
 
-- Rincian per kriteria: `QA-REPORT.md` → **15/15 lulus + O1**.
+- Rincian per kriteria: `QA-REPORT.md` → **16/16 lulus + O1**.
 - Panduan pengguna: `app/README.md` (Bahasa Indonesia).
 
 ## Berkas
 
 - `app/index.html`, `app/styles.css`, `app/README.md`
 - `app/src/`: `constants.js`, `detect.js`, `search.js`, `embed.js`, `codec.js`,
-  `backup.js`, `db.js`, `render.js`, `thumbnail.js`, `detail.js`, `form.js`,
-  `preview.js`, `main.js`
+  `backup.js`, `db.js`, `id.js`, `render.js`, `thumbnail.js`, `poster.js`,
+  `detail.js`, `form.js`, `preview.js`, `main.js`
 - `tests/`: `detect.test.js`, `search.test.js`, `embed.test.js`, `codec.test.js`,
-  `backup.test.js`, `thumbnail.test.js`
+  `backup.test.js`, `thumbnail.test.js`, `id.test.js`
 - `qa/`: tangkapan (`final-390.png`, `final-1280.png`, `task7-390.png`, `task7-1280.png`,
   `task10-preview.png`, `task10-fallback.png`, `task8-form.png`, `task9-collections.png`)
   + skrip QA (`drive.mjs`, `shot.mjs`, `states.mjs`, `task6-11.mjs`, `final-qa.mjs`,

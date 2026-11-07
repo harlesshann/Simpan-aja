@@ -372,6 +372,43 @@ check('O1. kolom judul dikosongkan -> judul diturunkan dari URL',
   onlyUrl.title === 'Learn Css Grid' && onlyUrl.cardTitle === 'Learn Css Grid',
   JSON.stringify(onlyUrl));
 
+// ---------- Criterion 16: save works on insecure origin (no crypto.randomUUID) ----------
+// HP lewat http://IP bukan secure context -> randomUUID undefined.
+const insecure = await evaluate(`(async()=>{
+  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+  const q = (s)=>document.querySelector(s);
+  window.confirm = () => true;
+  const hadRandomUUID = typeof crypto.randomUUID === 'function';
+  const orig = crypto.randomUUID;
+  Object.defineProperty(crypto, 'randomUUID', { configurable: true, writable: true, value: undefined });
+  try {
+    q('#btnAdd').click(); await sleep(40);
+    q('#fTitle').value = 'Uji HP insecure';
+    q('#fUrl').value = 'https://example.org/hp';
+    q('#fUrl').dispatchEvent(new Event('input',{bubbles:true}));
+    await sleep(30);
+    q('#bookmarkForm').requestSubmit(); await sleep(160);
+    const db = await import('/src/db.js');
+    const item = (await db.listBookmarks()).find(b=>b.url==='https://example.org/hp');
+    const card = [...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent==='Uji HP insecure');
+    const out = {
+      hadRandomUUID,
+      dialogClosed: !q('#bookmarkDialog').open,
+      saved: !!item && /^[0-9a-f-]{36}$/.test(item.id),
+      cardShown: !!card,
+      error: q('#formError').hidden ? null : q('#formError').textContent,
+    };
+    if (item) await db.deleteBookmark(item.id);
+    return out;
+  } finally {
+    Object.defineProperty(crypto, 'randomUUID', { configurable: true, writable: true, value: orig });
+  }
+})()`);
+R.notes.insecure = insecure;
+check('16. Simpan tetap bekerja tanpa crypto.randomUUID (origin http://IP di HP)',
+  insecure.hadRandomUUID && insecure.saved && insecure.cardShown && insecure.dialogClosed && !insecure.error,
+  JSON.stringify(insecure));
+
 // ---------- Criterion 12: network audit — only approved thumbnail sources ----------
 requests.length = 0;
 await navFresh(APP);

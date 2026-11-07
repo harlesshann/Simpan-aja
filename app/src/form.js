@@ -1,6 +1,7 @@
 import { TYPES, TYPE_LABELS } from './constants.js';
 import { detectType, deriveTitle } from './detect.js';
 import { findDuplicate } from './backup.js';
+import { newId } from './id.js';
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -100,7 +101,7 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
   document.getElementById('btnCancelForm').onclick = () => dialog.close();
 
-  form.onsubmit = (e) => {
+  form.onsubmit = async (e) => {
     e.preventDefault();
     const type = fType.value;
     const url = type === 'command' ? null : fUrl.value.trim();
@@ -129,7 +130,7 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
     const now = new Date().toISOString();
     const bookmark = mode === 'edit'
       ? { ...initial, title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, id: initial.id, createdAt: initial.createdAt, updatedAt: now }
-      : { id: crypto.randomUUID(), title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, createdAt: now, updatedAt: now };
+      : { id: newId(), title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, createdAt: now, updatedAt: now };
 
     if (collectionId) bookmark.collectionId = collectionId;
     else if (fCollection.value === '__new__') bookmark.collectionId = null;
@@ -142,8 +143,12 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
       if (!ok) return;
     }
 
-    onSave(bookmark);
-    dialog.close();
+    try {
+      await onSave(bookmark);
+      dialog.close();
+    } catch (err) {
+      showError('Gagal menyimpan: ' + (err && err.message ? err.message : 'kesalahan tak terduga'));
+    }
   };
 
   dialog.showModal();

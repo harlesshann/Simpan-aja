@@ -70,6 +70,8 @@ Lima kelas masukan/kegagalan yang paling mungkin menggigit pengguna, masing-masi
 
 - `app/src/db.js` — satu-satunya modul yang menyentuh IndexedDB: CRUD bookmark/Koleksi + hapus-Koleksi-sekaligus-lepas-item dalam satu transaksi.
 
+- `app/src/id.js` — pembuat id (UUID v4 via `crypto.getRandomValues`), aman di insecure context seperti `http://IP` dari HP.
+
 - `app/src/render.js` — bangun elemen kartu (thumbnail + lencana + judul + meta) &amp; daftar Koleksi dari data (DOM aman, tanpa `innerHTML` untuk data pengguna); kartu = tombol pembuka detail.
 
 - `app/src/thumbnail.js` — pilih sumber gambar thumbnail per bookmark (YouTube asli / favicon / poster lokal / tile lokal); satu-satunya modul yang menyusun URL gambar eksternal.
@@ -84,7 +86,7 @@ Lima kelas masukan/kegagalan yang paling mungkin menggigit pengguna, masing-masi
 
 - `app/src/main.js` — bootstrap: buka DB, muat state, wiring semua event, tangani fragment `#add=`, jalankan export/import.
 
-- `tests/detect.test.js`, `tests/search.test.js`, `tests/embed.test.js`, `tests/codec.test.js`, `tests/backup.test.js`, `tests/thumbnail.test.js` — tes Node untuk modul murni.
+- `tests/detect.test.js`, `tests/search.test.js`, `tests/embed.test.js`, `tests/codec.test.js`, `tests/backup.test.js`, `tests/thumbnail.test.js`, `tests/id.test.js` — tes Node untuk modul murni.
 
 - `app/[README.md](http://README.md)` — cara pakai &amp; peringatan alamat kanonis/backup (Task 12).
 

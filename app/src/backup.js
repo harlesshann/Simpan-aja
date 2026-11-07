@@ -1,5 +1,6 @@
 import { TYPES } from './constants.js';
 import { normalizeUrl, isValidHttpUrl, deriveTitle } from './detect.js';
+import { newId } from './id.js';
 
 // Kunci duplikat bersama untuk tambah manual, link Muse, dan import.
 export function duplicateKey(b) {
@@ -34,7 +35,7 @@ export function buildExport({ bookmarks, collections }, now = new Date()) {
 }
 
 // Murni: tak menyentuh DB. Pemanggil menerapkan addCollections lalu addBookmarks.
-export function planImport(text, existing, makeId = () => crypto.randomUUID()) {
+export function planImport(text, existing, makeId = newId) {
   let data;
   try {
     data = JSON.parse(text);
