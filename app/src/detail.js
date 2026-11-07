@@ -57,12 +57,6 @@ export function openDetail({ bookmark: b, collectionName = '', sourceLabel = '',
   } else {
     actions.append(el('a', { class: 'btn btn-primary', href: b.url, target: '_blank', rel: 'noopener', text: 'Buka' }));
     actions.append(el('button', { class: 'btn', type: 'button', text: 'Copy', onclick: () => handlers.onCopy && handlers.onCopy(b) }));
-    if (b.type === 'video') {
-      actions.append(el('button', {
-        class: 'btn', type: 'button', text: 'Preview',
-        onclick: () => { closeDetail(); handlers.onPreview && handlers.onPreview(b); },
-      }));
-    }
   }
   actions.append(el('button', {
     class: 'btn', type: 'button', text: 'Edit',
@@ -72,10 +66,13 @@ export function openDetail({ bookmark: b, collectionName = '', sourceLabel = '',
     class: 'btn btn-danger', type: 'button', text: 'Hapus',
     onclick: async () => { const deleted = await handlers.onDelete?.(b); if (deleted) closeDetail(); },
   }));
-  actions.append(el('button', { class: 'btn', type: 'button', text: 'Tutup', onclick: closeDetail }));
   body.append(actions);
 
-  dialog.replaceChildren(body);
+  const closeBtn = el('button', {
+    class: 'detail-close', type: 'button', 'aria-label': 'Tutup detail', text: '\u00d7', onclick: closeDetail,
+  });
+
+  dialog.replaceChildren(closeBtn, body);
   dialog.showModal();
   return dialog;
 }

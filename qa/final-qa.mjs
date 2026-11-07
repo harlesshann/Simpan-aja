@@ -191,7 +191,7 @@ const copy = await evaluate(`(async()=>{
     cardBy(title).click(); await sleep(90);
     btnIn(q('#detailDialog'),'Copy').click(); await sleep(140);
     const txt = await navigator.clipboard.readText();
-    btnIn(q('#detailDialog'),'Tutup').click(); await sleep(60);
+    q('#detailDialog .detail-close').click(); await sleep(60);
     return txt;
   };
   const cmd = await read('Konversi audio mp4');
@@ -221,18 +221,19 @@ const detail = await evaluate(`(async()=>{
     thumb: !!d.querySelector('.detail-thumb .card-thumb'),
     actions: [...d.querySelectorAll('.detail-actions button, .detail-actions a')].map(e=>e.textContent),
   };
-  [...d.querySelectorAll('button')].find(b=>b.textContent==='Tutup').click(); await sleep(60);
+  [...d.querySelectorAll('button')].find(b=>b.classList.contains('detail-close')).click(); await sleep(60);
   out.closed = !d.open;
   return out;
 })()`);
 R.notes.detail = detail;
-check('15. klik kartu membuka detail lengkap (thumb, judul, sumber, aksi) lalu Tutup',
+check('15. klik kartu membuka detail lengkap (thumb, judul, sumber, aksi) lalu tutup ×',
   detail.role === 'button' && detail.tab === 0 && detail.hasThumb && detail.open &&
   detail.title === 'Orca video editor' && detail.badge === 'Repo GitHub' &&
   detail.url === 'https://github.com/stablyai/orca' && detail.thumb &&
   detail.actions.includes('Buka') && detail.actions.includes('Copy') &&
   detail.actions.includes('Edit') && detail.actions.includes('Hapus') &&
-  detail.actions.includes('Tutup') && detail.closed, JSON.stringify(detail));
+  !detail.actions.includes('Preview') && !detail.actions.includes('Tutup') &&
+  detail.closed, JSON.stringify(detail));
 
 // ---------- Criterion 6: delete collection keeps bookmarks ----------
 const collections = await evaluate(`(async()=>{
@@ -264,36 +265,32 @@ check('6. hapus Koleksi tidak menghapus bookmark',
 await evaluate(`document.querySelector('[data-collection="all"]').click()`);
 await sleep(80);
 
-// ---------- Criterion 7: preview from detail (YouTube iframe, Threads fallback, close drops embed) ----------
-const preview = await evaluate(`(async()=>{
+// ---------- Criterion 7: detail tanpa tombol Preview; tutup berupa ikon × ----------
+const detailClose = await evaluate(`(async()=>{
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
   const q = (s)=>document.querySelector(s);
   const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
-  const btnIn = (root, t)=>[...root.querySelectorAll('button')].find(b=>b.textContent===t);
   const out = {};
 
   cardBy('Belajar easing dasar').click(); await sleep(90);
   out.detailOpen = q('#detailDialog').open;
-  btnIn(q('#detailDialog'),'Preview').click(); await sleep(160);
-  out.iframe = q('#previewPopup iframe')?.src || null;
-  out.detailClosed = !q('#detailDialog').open;
-  out.noAutoplay = !/autoplay/.test(q('#previewPopup iframe')?.getAttribute('allow') || '');
-  q('.preview-close')?.click(); await sleep(80);
-  out.closedRemoved = !q('#previewPopup iframe') && q('#previewPopup').hidden;
+  const labels = [...q('#detailDialog').querySelectorAll('button')].map(b=>b.textContent.trim());
+  out.noPreview = !labels.includes('Preview');
+  out.noTutupText = !labels.includes('Tutup');
+  const x = q('#detailDialog .detail-close');
+  out.hasX = !!x && x.textContent.trim() === '\\u00d7' && x.getAttribute('aria-label') === 'Tutup detail';
+  x?.click(); await sleep(80);
+  out.closed = !q('#detailDialog').open;
 
-  cardBy('Teknik color grading').click(); await sleep(90);
-  btnIn(q('#detailDialog'),'Preview').click(); await sleep(120);
-  out.fallbackNoIframe = !q('#previewPopup iframe');
-  out.fallbackSource = q('#previewPopup a')?.textContent || null;
-  q('.preview-close').click(); await sleep(60);
+  cardBy('Teknik color grading').click(); await sleep(80);
+  q('#detailDialog .detail-close')?.click(); await sleep(80);
+  out.closed2 = !q('#detailDialog').open;
   return out;
 })()`);
-R.notes.preview = preview;
-check('7. preview dari detail: YouTube iframe + fallback Threads + tutup membuang embed',
-  preview.detailOpen && preview.detailClosed && preview.noAutoplay &&
-  /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(preview.iframe || '') &&
-  preview.closedRemoved && preview.fallbackNoIframe &&
-  preview.fallbackSource === 'Tonton di Sumbernya', JSON.stringify(preview));
+R.notes.detailClose = detailClose;
+check('7. detail tanpa Preview; tombol tutup ikon × menutup modal',
+  detailClose.detailOpen && detailClose.noPreview && detailClose.noTutupText &&
+  detailClose.hasX && detailClose.closed && detailClose.closed2, JSON.stringify(detailClose));
 
 // ---------- Criterion 10: duplicate warning ----------
 const dupe = await evaluate(`(async()=>{

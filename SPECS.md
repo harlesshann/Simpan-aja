@@ -40,7 +40,7 @@ Prinsip yang memandu seluruh desain:
 
 4. Command dapat disalin kembali dengan \*\*Copy 1-klik\*\*, tanpa perlu memblok teks manual. \*\*\[Handy\]\*\*
 
-5. Kartu Video dapat diintip lewat \*\*preview popup\*\* sebelum membuka sumbernya (bersyarat, lihat §7.5). \*\*\[Handy\]\*\*
+5. Kartu Video dapat diintip lewat \*\*preview popup\*\* sebelum membuka sumbernya (bersyarat, lihat §7.5). \*\*\[Handy\]\*\* — \*\*DIHAPUS: lihat §7.5.\*\*
 
 6. Bookmark hasil kurasi AI (Muse/Harless di chat) dapat masuk ke aplikasi lewat \*\*link 1-tap\*\* dan \*\*import JSON\*\* (lihat §7.7). \*\*\[Handy\]\*\*
 
@@ -78,7 +78,7 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
 - Aplikasi yang terasa seperti spreadsheet/formulir administrasi — ia harus terasa seperti tempat menyimpan yang ringan dan visual.
 
-- Preview video yang menjanjikan semua platform bisa diputar di dalam popup (janji palsu — lihat §7.5).
+- Preview video yang menjanjikan semua platform bisa diputar di dalam popup (janji palsu — fitur preview telah \*\*dihapus\*\*, lihat §7.5).
 
 - Data pengguna terkirim ke server/analytics pihak mana pun.
 
@@ -90,7 +90,7 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
 3. Konsekuensi batasan 1–2 yang harus terlihat jujur di aplikasi: mengganti browser/perangkat atau menghapus data browser membuat koleksi tidak ikut — karena itu export JSON (§7.8) adalah jalan keluar resminya dan tombolnya harus mudah ditemukan.
 
-4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, (b) memuat embed video saat preview dibuka (§7.5), dan (c) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal: placeholder huruf awal tampil sampai gambar termuat, lalu menimpanya; bila gagal, placeholder tetap.
+4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, dan (b) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal: placeholder huruf awal tampil sampai gambar termuat, lalu menimpanya; bila gagal, placeholder tetap.
 
 5. Antarmuka dan semua pesan untuk pengguna dalam \*\*Bahasa Indonesia\*\*.
 
@@ -102,7 +102,7 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
 9. \*\*Bentuk halaman web biasa, bukan PWA \[Handy — kode `2b`\]:\*\* v1 adalah halaman web biasa. Tidak ada manifest, service worker, ikon home-screen, mode offline terpasang, maupun permintaan penyimpanan persisten (`[navigator.storage](http://navigator.storage).persist()`) di v1. Konsekuensinya diterima secara sadar: penyimpanan yang dipakai adalah penyimpanan situs biasa, sehingga export JSON (§7.8) tetap menjadi pengaman utama data dan tombolnya harus mudah ditemukan.
 
-## 7. Fitur (yang disetujui Handy, termasuk amendemen preview)
+## 7. Fitur (yang disetujui Handy; amendemen preview sudah dihapus)
 
 ### 7.1 Tambah bookmark cepat
 
@@ -174,13 +174,11 @@ Kartu itu sendiri adalah tombol (dapat difokus keyboard, `Enter`/`Space`): mengk
 
   - `Copy` (menyalin URL untuk tipe berbasis link; menyalin teks command untuk Command)
 
-  - `Preview` (hanya item Video; lihat §7.5)
-
   - `Edit`
 
   - `Hapus` (dengan konfirmasi dulu)
 
-  - `Tutup`
+  - `Tutup` (ikon × di pojok kanan atas)
 
 Tidak ada tombol aksi di kartu grid dan tidak ada hover-preview; semua aksi lewat modal detail. Tujuan: grid rapi dan visual, satu pola interaksi di HP & desktop.
 
@@ -200,35 +198,9 @@ Keadaan kosong yang harus ditangani dengan pesan berbahasa Indonesia:
 
 - Urutan hasil selalu \*\*terbaru disimpan di atas\*\* (`createdAt` menurun); search/filter tidak mengubah urutan.
 
-### 7.5 Preview popup untuk item Video \*\*\[Handy — dengan syarat yang disetujui Handy; diubah: modal dari detail\]\*\*
+### 7.5 Preview video — \*\*dihapus\*\* \*\*\[Perubahan atas permintaan Handy\]\*\*
 
-Bunyi fitur yang disepakati persis: *"Preview popup untuk kartu Video, memutar embed bila platformnya mengizinkan, fallback info + buka sumber bila diblokir."*
-
-Perilaku:
-
-- \*\*Modal tengah, dipicu dari detail (semua perangkat):\*\* tidak ada hover. Preview dibuka lewat tombol `Preview` di \*\*modal detail\*\* (§7.3). Popup preview tampil sebagai modal di tengah layar di HP maupun desktop — satu pola, ringkas.
-
-- Embed \*\*baru dimuat saat preview dibuka\*\* (tidak semua kartu dimuat di awal) dan \*\*dibuang saat popup ditutup\*\*, agar pemutaran berhenti dan halaman tetap ringan.
-
-- Suara \*\*tidak\*\* autoplay; pengguna menekan play di dalam player, sesuai aturan browser.
-
-- Tombol `Esc` dan klik di luar popup menutupnya.
-
-Aturan embed per sumber \*\*\[Usulan Harless — bentuk konkret dari syarat Handy\]\*\*:
-
-| Sumber | Preview |
-
-|---|---|
-
-| YouTube ([`youtube.com/watch`](http://youtube.com/watch`), [`youtu.be/`](http://youtu.be/`), [`youtube.com/shorts/`](http://youtube.com/shorts/`)) | Player embed [`youtube-nocookie.com/embed/<id>`](http://youtube-nocookie.com/embed/<id>`) dari ID video yang diekstrak dari URL |
-
-| File video langsung (URL berakhiran `.mp4` / `.webm`) | Elemen `<video controls>` |
-
-| TikTok | Dicoba embed [`tiktok.com/embed/v2/<id>`](http://tiktok.com/embed/v2/<id>`) bila ID dapat diekstrak dari URL; bila tidak, fallback |
-
-| Threads, Instagram, Facebook, X, dan sumber video lain | \*\*Langsung fallback\*\* (platform-platform ini terverifikasi sering memblokir embed / mengunci file video) |
-
-\*\*Fallback\*\* (bukan player bohongan): popup menampilkan judul, sumber, catatan, dan tombol `Tonton di Sumbernya` yang membuka link asli.
+Fitur preview popup (iframe/video embed + fallback `Tonton di Sumbernya`) beserta tombol `Preview` di modal detail **dihapus** dari v1. Aplikasi tidak lagi memuat embed apa pun; satu-satunya jaringan selain membuka link yang diklik hanyalah gambar thumbnail (§6 butir 4).
 
 ### 7.6 Kelola Koleksi \*\*\[Handy\]\*\*
 
@@ -461,7 +433,7 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
 6. Menghapus Koleksi tidak menghapus bookmark-nya; itemnya tampil di "Belum Dikoleksi".
 
-7. Menekan kartu Video membuka modal detail; tombol `Preview` di sana memutar embed YouTube; item Threads menampilkan popup fallback dengan tombol `Tonton di Sumbernya`; menutup popup menghentikan pemutaran. Tidak ada hover-preview.
+7. Menekan kartu Video membuka modal detail tanpa tombol `Preview`; modal ditutup lewat ikon × di pojok kanan atas, `Esc`, atau klik backdrop. Tidak ada hover-preview dan tidak ada embed yang dimuat.
 
 8. Link 1-tap Muse yang valid membuka formulir terisi (termasuk usulan Koleksi baru), fragment dibersihkan dari URL, dan item \*\*belum\*\* tersimpan sebelum `Simpan` ditekan. Link dengan payload rusak menampilkan pesan kesalahan dan formulir kosong.
 
@@ -471,13 +443,13 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
 11. Seluruh alur di atas dapat dilakukan pada viewport ±390px tanpa elemen tumpang tindih yang menghalangi, dan pada ±1280px grid tampil multi-kolom. Kartu dapat difokus keyboard (role tombol, `Enter`/`Space` membuka detail); thumbnail tidak merusak lebar kartu.
 
-12. Panggilan jaringan saat aplikasi dipakai hanya ke sumber yang diizinkan §6: membuka link yang diklik pengguna, embed saat preview dibuka, dan gambar thumbnail dari `i.ytimg.com` serta `www.google.com/s2/favicons` (termasuk redirect layanannya). Tidak ada panggilan lain.
+12. Panggilan jaringan saat aplikasi dipakai hanya ke sumber yang diizinkan §6: membuka link yang diklik pengguna dan gambar thumbnail dari `i.ytimg.com` serta `www.google.com/s2/favicons` (termasuk redirect layanannya). Tidak ada embed dan tidak ada panggilan lain.
 
 13. Import ke aplikasi yang tidak kosong mempertahankan `createdAt` asli tiap bookmark (urutan daftar tidak berubah menjadi urutan import), dan tabrakan `id` dengan bookmark berbeda diselesaikan dengan `id` baru untuk item yang masuk.
 
 14. Link 1-tap dengan payload JSON lebih dari 2.000 karakter ditolak dengan pesan kesalahan yang mengarahkan ke import JSON.
 
-15. Mengklik kartu membuka modal detail terpusat yang memuat thumbnail, lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan semua aksi (`Buka`/`Copy`/`Preview`/`Edit`/`Hapus`/`Tutup`); `Tutup`, `Esc`, dan klik backdrop menutup modal tanpa perubahan data.
+15. Mengklik kartu membuka modal detail terpusat yang memuat thumbnail, lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan semua aksi (`Buka`/`Copy`/`Edit`/`Hapus`) plus tombol tutup ikon × di pojok kanan atas; `Esc` dan klik backdrop juga menutup modal tanpa perubahan data.
 
 ## 11. Yang Diserahkan ke Builder (tahap rencana yang memutuskan)
 
@@ -507,9 +479,9 @@ Spec ini sengaja \*\*tidak\*\* menentukan, dan rencana implementasi yang memutus
 
 7. Bentuk aplikasi: \*\*Dashboard satu halaman (Pendekatan A)\*\*. \*\*\[Handy\]\*\*
 
-8. Fitur: 6 fitur §7.1–7.8 disetujui, \*\*tanpa Pin/Favorit\*\*, lalu diamendemen Handy dengan \*\*preview popup Video\*\*. \*\*\[Handy\]\*\*
+8. Fitur: 6 fitur §7.1–7.8 disetujui, \*\*tanpa Pin/Favorit\*\*; amendemen preview popup Video kemudian \*\*dibatalkan/dihapus\*\* atas permintaan Handy. \*\*\[Handy\]\*\*
 
-9. Preview popup: \*\*bersyarat embed + fallback\*\* untuk platform yang memblokir. \*\*\[Handy\]\*\*
+9. Preview popup: ~~bersyarat embed + fallback~~ \*\*dihapus\*\*; tidak ada embed di v1. \*\*\[Handy\]\*\*
 
 10. Nama: \*\*SimpanAja\*\*. \*\*\[Handy\]\*\*
 

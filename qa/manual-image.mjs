@@ -104,11 +104,19 @@ R.notes.persisted = persisted;
 check('4. gambar tetap ada setelah reload', /^data:image\/webp;base64,/.test(persisted?.head || ''), JSON.stringify(persisted));
 
 // 5. Edit -> Hapus gambar -> kartu kembali ke favicon situs.
+await evaluate(`(async()=>{
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const q=s=>document.querySelector(s);
+  [...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent==='Dengan gambar').click();
+  await sleep(120);
+  return !q('#detailDialog').open;
+})()`);
+{ const shot = await send('Page.captureScreenshot', { format: 'png' }); (await import('node:fs')).writeFileSync('qa/manual-detail.png', Buffer.from(shot.result.data, 'base64')); }
+
 const cleared = await evaluate(`(async()=>{
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const q=s=>document.querySelector(s);
   const find=()=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent==='Dengan gambar');
-  find().click(); await sleep(80);
   [...document.querySelectorAll('#detailDialog .btn')].find(b=>b.textContent.trim()==='Edit').click();
   await sleep(80);
   const preEdit = !q('#fImagePreview').hidden;

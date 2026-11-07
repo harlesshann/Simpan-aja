@@ -44,12 +44,8 @@ membuat HP memakai JS lama dari cache.
   gagal dimuat. Kartu bisa
   diklik (atau `Enter`/`Space` saat difokus) untuk membuka **detail**.
 - **Detail (modal):** thumbnail besar, lencana tipe, judul, sumber, URL/command,
-  Koleksi, catatan, tanggal, dan semua aksi: `Buka`, `Copy`, `Preview`, `Edit`,
-  `Hapus`, `Tutup`. `Tutup`, `Esc`, atau klik di luar menutupnya.
-- **Preview video:** tombol `Preview` di modal detail, untuk sumber yang mendukung
-  embed (YouTube, TikTok, file `.mp4`/`.webm`). Platform yang memblokir embed
-  (Threads, Instagram, dll.) menampilkan tombol `Tonton di Sumbernya`. Menutup
-  preview menghentikan pemutaran.
+  Koleksi, catatan, tanggal, dan aksi `Buka`, `Copy`, `Edit`, `Hapus`. Tutup lewat
+  ikon **×** di pojok kanan atas, `Esc`, atau klik di luar modal.
 
 ## Backup: Export & Import
 

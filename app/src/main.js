@@ -4,7 +4,6 @@ import { filterBookmarks } from './search.js';
 import { createCardEl, renderCollectionFilter } from './render.js';
 import { openBookmarkForm, openCollectionManager } from './form.js';
 import { newId } from './id.js';
-import { openPreview } from './preview.js';
 import { openDetail } from './detail.js';
 import {
   listBookmarks, listCollections, putBookmark, deleteBookmark, putCollection, deleteCollectionAndDetach,
@@ -89,7 +88,6 @@ function renderEmpty(total) {
 function handlers() {
   return {
     onCopy: (b) => copyText(b.type === 'command' ? b.command : b.url),
-    onPreview: (b) => openPreview(b),
     onEdit: (b) => openEdit(b),
     onDelete: async (b) => {
       if (!window.confirm(`Hapus "${b.title || b.url || b.command}"?`)) return false;

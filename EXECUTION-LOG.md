@@ -187,3 +187,10 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Backup JSON menyertakan `image`; import hanya menerima bitmap data URL (webp/jpeg/png) <= 500.000 karakter, selain itu dibuang tanpa menggagalkan restore.
 - Tes: 51 pass, 0 fail (`tests/backup.test.js` + `tests/thumbnail.test.js`). QA: `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5 (pilih gambar, tolak non-gambar, export, persist reload, hapus).
 - Berkas: `app/index.html`, `app/src/form.js`, `app/src/thumbnail.js`, `app/src/backup.js`, `app/styles.css`, `tests/*`, `qa/manual-image.mjs`, `SPECS.md`, `app/README.md`.
+
+## Hapus preview video; tutup detail jadi ikon ×
+
+- Fitur preview video (tombol `Preview` di modal detail, popup embed iframe/video, fallback `Tonton di Sumbernya`) dihapus atas permintaan Handy: `app/src/preview.js`, `app/src/embed.js`, `tests/embed.test.js`, markup `#previewPopup`, CSS preview, dan wiring `onPreview` di `main.js` ikut dihapus.
+- Modal detail kini tanpa tombol `Preview` dan `Tutup` teks; ditutup lewat ikon × (`.detail-close`, `aria-label` 'Tutup detail') di pojok kanan atas, tetap plus `Esc` dan klik backdrop.
+- SPECS §7.5/§10/§12 dan README disesuaikan (preview dihapus); jaringan kini hanya untuk link yang diklik + thumbnail.
+- Tes: 50 pass, 0 fail. QA `qa/final-qa.mjs` 14/14 (kriteria 7 & 15 diperbarui); `qa/manual-image.mjs` 5/5. Bukti visual: `qa/manual-detail.png`.
