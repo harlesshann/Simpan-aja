@@ -107,6 +107,15 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 .btn-danger:hover { background: var(--danger); color: #fff; }
 .btn-small { min-height: 36px; font-size: 13px; padding: 0 10px; }
 
+/* HP: bar atas rapi — brand, lalu 3 tombol sama lebar dalam satu baris. */
+@media (max-width: 639px) {
+  .topbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .topbar h1 { font-size: 17px; }
+  .topbar-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .topbar-actions .total { grid-column: 1 / -1; margin: 0; }
+  .topbar-actions .btn { width: 100%; padding: 0 6px; }
+}
+
 /* ---------- layout ---------- */
 .layout {
   display: grid; gap: 22px;
@@ -121,15 +130,16 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
 .sidebar-head h2 { font-size: 13px; letter-spacing: .08em; color: var(--ink); }
 
-.collection-list { display: flex; gap: 10px; overflow-x: auto; padding: 12px 2px 6px; }
+/* Folder Koleksi: grid kotak (bukan bar), jumlah kolom ikut lebar layar. */
+.collection-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 10px; padding: 12px 2px 6px; }
 @media (min-width: 1024px) {
-  /* Kotak folder dua kolom di sidebar, bukan bar selebar sidebar. */
-  .collection-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; overflow: visible; }
+  /* Kotak folder dua kolom di sidebar sempit. */
+  .collection-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; }
 }
 .collection-item {
   position: relative;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px;
-  width: 132px; min-height: 64px; padding: 11px 9px 8px; margin-top: 11px; flex: 0 0 auto;
+  width: 100%; min-height: 64px; padding: 11px 9px 8px; margin-top: 11px; flex: 0 0 auto;
   background: var(--folder, var(--accent));
   border: var(--bw) solid var(--ink); border-radius: 0;
   box-shadow: var(--shadow-sm); color: var(--ink);
@@ -149,7 +159,6 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 .collection-item.is-all::before { background: var(--ink); }
 .collection-item.is-none { background: var(--surface-2); }
 .collection-item.is-none::before { background: var(--surface-2); }
-@media (min-width: 1024px) { .collection-item { width: 100%; } }
 .collection-item:hover { box-shadow: 5px 5px 0 var(--ink); }
 .collection-item[aria-current="true"] { box-shadow: 6px 6px 0 var(--ink); transform: translate(-2px, -2px); }
 .collection-item .count {
@@ -174,6 +183,11 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 .search:focus-visible { background: #fffce0; }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+@media (max-width: 639px) {
+  /* HP: chip satu baris yang bisa digeser, hemat tinggi. */
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+  .chip { flex: 0 0 auto; }
+}
 .chip {
   min-height: 42px; padding: 0 14px;
   display: inline-flex; align-items: center;
@@ -300,6 +314,11 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 .manage-row .count { font-family: var(--mono); color: var(--ink); font-size: 12px; font-weight: 700; min-width: 56px; text-align: right; }
 .manage-row .color-picker { flex-basis: 100%; }
 .manage-empty { color: var(--muted); font-size: 13.5px; }
+@media (max-width: 639px) {
+  /* HP: nama di baris sendiri, lalu jumlah + Hapus, lalu swatch warna. */
+  .manage-row input { flex-basis: 100%; }
+  .manage-row .count { flex: 1 1 auto; text-align: left; }
+}
 
 .color-picker { display: flex; flex-wrap: wrap; gap: 6px; }
 .color-swatch {
@@ -330,6 +349,10 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
   display: block; font-family: var(--mono); font-size: 12px; color: var(--muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   word-break: break-all; line-height: 1.4;
+}
+@media (max-width: 639px) {
+  /* HP: URL panjang dibungkus agar terbaca penuh, tidak terpotong. */
+  .detail-url { white-space: normal; overflow-wrap: anywhere; }
 }
 .detail-command {
   margin: 0; padding: 10px 12px; background: var(--ink); color: var(--accent);

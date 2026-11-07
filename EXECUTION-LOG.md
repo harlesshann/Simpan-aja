@@ -214,3 +214,12 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Tes: 51 pass, 0 fail (tes baru untuk round-trip warna Koleksi). QA `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5. Bukti visual: `qa/collections-sidebar.png`, `qa/collections-manage.png`, `qa/collections-mobile.png`.
 
 - Koleksi folder: item dikecilkan jadi kotak folder (132px, 2 kolom grid di sidebar desktop) bukan bar selebar sidebar; nama dibatasi 2 baris, lencana jumlah di bawah. Bukti: `qa/collections-sidebar.png`, `qa/collections-mobile.png`.
+
+## Rapikan tampilan HP (390px)
+
+- Bar atas jadi grid: brand, teks jumlah, lalu 3 tombol (+ Tambah/Import/Export) sama lebar satu baris (sebelumnya Export sendirian di baris kedua).
+- Daftar Koleksi: grid kotak folder auto-fill minmax(150px,1fr) - 2 kolom rapi di HP tanpa geser mendatar (menggantikan baris scroll); desktop tetap 2 kolom di sidebar 236px.
+- Chip filter tipe: satu baris yang bisa digeser di HP (hemat tinggi).
+- Dialog Kelola Koleksi: nama di baris sendiri, lalu jumlah + Hapus, lalu swatch warna.
+- URL di halaman detail dibungkus di HP agar terbaca penuh.
+- Tes: 51 pass, 0 fail. QA qa/final-qa.mjs 14/14 (termasuk kriteria 11 tanpa overflow 390px); qa/manual-image.mjs 5/5. Bukti: qa/m-home.png, qa/m-detail.png, qa/m-manage.png, qa/m-form.png (menggantikan qa/collections-mobile.png).
