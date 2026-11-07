@@ -8,9 +8,13 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">
-    <span class="brand-mark" aria-hidden="true">S</span>
-    <h1>SimpanAja</h1>
+  <div class="topbar-head">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <h1>SimpanAja</h1>
+    </div>
+    <button id="btnToggleSidebar" class="btn btn-sidebar-toggle" type="button"
+      aria-controls="appSidebar" aria-expanded="true">Koleksi</button>
   </div>
   <div class="topbar-actions">
     <span class="total" id="totalCount">0 tersimpan</span>
@@ -20,13 +24,16 @@
   </div>
 </header>
 
+<div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+
 <p class="local-note" role="note">Data tersimpan lokal di browser ini. Export JSON adalah jalan backup-nya.</p>
 
 <main class="layout">
-  <aside class="sidebar">
+  <aside class="sidebar" id="appSidebar">
     <div class="sidebar-head">
       <h2>Koleksi</h2>
       <button id="btnManageCollections" class="btn btn-quiet" type="button">Kelola</button>
+      <button id="btnCloseSidebar" class="btn btn-quiet sidebar-close" type="button" aria-label="Tutup Koleksi">&times;</button>
     </div>
     <nav id="collectionList" class="collection-list" aria-label="Filter Koleksi"></nav>
   </aside>

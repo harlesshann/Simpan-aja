@@ -26,11 +26,34 @@ const els = {
   toast: document.getElementById('toast'),
   layout: document.querySelector('.layout'),
   detailPage: document.getElementById('detailPage'),
+  toggleSidebar: document.getElementById('btnToggleSidebar'),
+  backdrop: document.getElementById('sidebarBackdrop'),
 };
 
 const state = { query: '', type: 'all', collection: 'all' };
 let bookmarks = [];
 let collections = [];
+
+/* Sidebar buka/tutup. Desktop: tampil/sembunyi permanen (default tampil).
+   HP: drawer dengan backdrop (default tertutup). */
+const sidebarQuery = window.matchMedia('(min-width: 1024px)');
+let desktopSidebar = true;
+let mobileSidebar = false;
+
+function applySidebar() {
+  const desktop = sidebarQuery.matches;
+  const open = desktop ? desktopSidebar : mobileSidebar;
+  document.body.classList.toggle('is-sidebar-collapsed', desktop && !desktopSidebar);
+  document.body.classList.toggle('is-sidebar-open', !desktop && mobileSidebar);
+  els.toggleSidebar.setAttribute('aria-expanded', String(open));
+  els.backdrop.hidden = desktop || !mobileSidebar;
+}
+
+function closeMobileSidebar() {
+  if (!mobileSidebar) return;
+  mobileSidebar = false;
+  applySidebar();
+}
 
 function toast(msg) {
   els.toast.textContent = msg;
@@ -276,6 +299,7 @@ function wire() {
     const item = e.target.closest('[data-collection]');
     if (!item) return;
     state.collection = item.dataset.collection;
+    closeMobileSidebar();
     render();
   };
 
@@ -301,9 +325,23 @@ function wire() {
   };
 
   window.addEventListener('popstate', route);
+  els.toggleSidebar.onclick = () => {
+    if (sidebarQuery.matches) desktopSidebar = !desktopSidebar;
+    else mobileSidebar = !mobileSidebar;
+    applySidebar();
+  };
+  document.getElementById('btnCloseSidebar').onclick = closeMobileSidebar;
+  els.backdrop.onclick = closeMobileSidebar;
+  sidebarQuery.addEventListener('change', applySidebar);
+
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || !itemIdFromHash()) return;
-    if (document.querySelector('dialog[open]')) return;
+    if (e.key !== 'Escape' || document.querySelector('dialog[open]')) return;
+    if (!sidebarQuery.matches && mobileSidebar) {
+      e.preventDefault();
+      closeMobileSidebar();
+      return;
+    }
+    if (!itemIdFromHash()) return;
     e.preventDefault();
     backHome();
   });
@@ -330,6 +368,7 @@ function handleAddFragment() {
 }
 
 wire();
+applySidebar();
 await render();
 route();
 handleAddFragment();

@@ -225,3 +225,10 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Tes: 51 pass, 0 fail. QA qa/final-qa.mjs 14/14 (termasuk kriteria 11 tanpa overflow 390px); qa/manual-image.mjs 5/5. Bukti: qa/m-home.png, qa/m-detail.png, qa/m-manage.png, qa/m-form.png (menggantikan qa/collections-mobile.png).
 
 - Koleksi kembali jadi folder memanjang (bar selebar kolom, tab folder di atas, nama satu baris + lencana jumlah di kanan); berlaku desktop dan HP. Bukti: qa/collections-sidebar.png, qa/collections-mobile.png.
+
+## Sidebar koleksi bisa dibuka/tutup (HP drawer, desktop bisa disembunyikan)
+
+- HP (<1024): sidebar jadi drawer geser dari kiri (lebar min(84vw,320px)), tertutup default, tombol Koleksi di bar atas membukanya; backdrop redup menutup saat diklik, tombol × di dalam drawer juga, dan Esc; memilih Koleksi otomatis menutup drawer.
+- Desktop (>=1024): sidebar tetap tampil default; tombol Koleksi menyembunyikan/munculkan kembali, grid melebar penuh saat tersembunyi.
+- Logika di `app/src/main.js` (matchMedia 1024, class `is-sidebar-open` / `is-sidebar-collapsed` di body, aria-expanded), markup di `app/index.html` (`#btnToggleSidebar`, `#sidebarBackdrop`, `#btnCloseSidebar`), CSS `app/styles.css`.
+- Tes: 51 pass, 0 fail. QA 14/14 dan 5/5. Bukti: qa/sidebar-mobile-closed.png, qa/sidebar-mobile-open.png, qa/sidebar-desktop-open.png, qa/sidebar-desktop-collapsed.png.

@@ -64,12 +64,14 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 
 /* ---------- top bar ---------- */
 .topbar {
+  position: relative; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; flex-wrap: wrap;
   padding: 14px clamp(14px, 4vw, 34px) 12px;
   background: var(--surface);
   border-bottom: var(--bw) solid var(--ink);
 }
+.topbar-head { display: flex; align-items: center; gap: 12px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-mark {
   width: 34px; height: 34px; display: grid; place-items: center;
@@ -111,6 +113,7 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 @media (max-width: 639px) {
   .topbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .topbar h1 { font-size: 17px; }
+  .topbar-head { justify-content: space-between; }
   .topbar-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .topbar-actions .total { grid-column: 1 / -1; margin: 0; }
   .topbar-actions .btn { width: 100%; padding: 0 6px; }
@@ -126,8 +129,29 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
   .layout { grid-template-columns: 236px 1fr; }
 }
 
+/* Sidebar buka/tutup: drawer di HP, bisa disembunyikan di desktop. */
+.sidebar-backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(10, 10, 10, .5); }
+.sidebar-close { display: none; }
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 60;
+    width: min(84vw, 320px); max-width: 320px; padding: 16px; overflow-y: auto;
+    background: var(--bg); border-right: var(--bw) solid var(--ink);
+    box-shadow: var(--shadow);
+    transform: translateX(-101%); transition: transform .18s ease-out;
+  }
+  .is-sidebar-open .sidebar { transform: translateX(0); }
+  .sidebar-close { display: inline-flex; }
+}
+@media (min-width: 1024px) {
+  .sidebar-backdrop { display: none; }
+  .is-sidebar-collapsed .layout { grid-template-columns: minmax(0, 1fr); }
+  .is-sidebar-collapsed .sidebar { display: none; }
+}
+
 .sidebar { min-width: 0; }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.sidebar-head #btnManageCollections { margin-left: auto; }
 .sidebar-head h2 { font-size: 13px; letter-spacing: .08em; color: var(--ink); }
 
 /* Folder Koleksi: bar memanjang selebar kolom (bukan kotak). */

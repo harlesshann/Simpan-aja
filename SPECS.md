@@ -146,7 +146,7 @@ Susunan halaman (atas ke bawah):
 
 3. \*\*Filter tipe:\*\* chip `Semua | Video | Website | Command | Repo GitHub | Extension | Lainnya`.
 
-4. \*\*Filter Koleksi:\*\* daftar Koleksi berbentuk \*\*folder\*\* berwarna (di desktop tampil sebagai daftar/sidebar; di HP tampil ringkas, mis. chip folder yang bisa di-scroll mendatar atau dropdown — bentuk persisnya builder yang menentukan selama tetap satu halaman dan nyaman di 390px) termasuk pilihan `Semua Koleksi` dan `Belum Dikoleksi`.
+4. \*\*Filter Koleksi:\*\* daftar Koleksi berbentuk \*\*folder\*\* berwarna, dibuka/ditutup lewat tombol `Koleksi`. Di HP tampil sebagai \*\*drawer\*\* (sidebar geser + backdrop, default tertutup); di desktop tampil sebagai sidebar yang bisa disembunyikan (default tampil) sehingga grid melebar penuh. Termasuk pilihan `Semua Koleksi` dan `Belum Dikoleksi`.
 
 5. \*\*Grid kartu\*\* bookmark (responsif: 1 kolom di HP, beberapa kolom di desktop).
 
