@@ -49,33 +49,62 @@ create policy "bookmarks own rows" on public.bookmarks
 alter table public.collections replica identity full;
 alter table public.bookmarks replica identity full;
 
--- Masukkan ke publication realtime (jalankan sekali; error "already a member"
--- berarti sudah aktif).
-alter publication supabase_realtime add table public.collections;
-alter publication supabase_realtime add table public.bookmarks;
+-- Masukkan ke publication realtime. Dibungkus DO supaya idempoten: error
+-- "already a member" akan membatalkan seluruh batch (dan migrasi di bawahnya).
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'collections'
+  ) then
+    alter publication supabase_realtime add table public.collections;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'bookmarks'
+  ) then
+    alter publication supabase_realtime add table public.bookmarks;
+  end if;
+end $$;
 
 -- ------------------------------------------------------------------
 -- Migrasi dari versi lama (PK hanya `id`). Jalankan bagian ini SEKALI kalau
 -- tabel sudah ada sebelumnya. Idempoten: aman dijalankan berulang.
 -- ------------------------------------------------------------------
 do $$
+declare cname text;
 begin
-  if exists (
+  -- user_id harus punya default auth.uid()
+  alter table public.collections alter column user_id set default auth.uid();
+  alter table public.bookmarks   alter column user_id set default auth.uid();
+
+  -- collections: pastikan PK = (user_id, id)
+  if not exists (
     select 1 from pg_constraint
-    where conname = 'collections_pkey'
-      and conrelid = 'public.collections'::regclass
-      and pg_get_constraintdef(oid) = 'PRIMARY KEY (id)'
+    where conrelid = 'public.collections'::regclass and contype = 'p'
+      and pg_get_constraintdef(oid) = 'PRIMARY KEY (user_id, id)'
   ) then
-    alter table public.collections drop constraint collections_pkey;
+    for cname in
+      select conname from pg_constraint
+      where conrelid = 'public.collections'::regclass and contype = 'p'
+    loop
+      execute format('alter table public.collections drop constraint %I', cname);
+    end loop;
     alter table public.collections add primary key (user_id, id);
   end if;
-  if exists (
+
+  -- bookmarks: pastikan PK = (user_id, id)
+  if not exists (
     select 1 from pg_constraint
-    where conname = 'bookmarks_pkey'
-      and conrelid = 'public.bookmarks'::regclass
-      and pg_get_constraintdef(oid) = 'PRIMARY KEY (id)'
+    where conrelid = 'public.bookmarks'::regclass and contype = 'p'
+      and pg_get_constraintdef(oid) = 'PRIMARY KEY (user_id, id)'
   ) then
-    alter table public.bookmarks drop constraint bookmarks_pkey;
+    for cname in
+      select conname from pg_constraint
+      where conrelid = 'public.bookmarks'::regclass and contype = 'p'
+    loop
+      execute format('alter table public.bookmarks drop constraint %I', cname);
+    end loop;
     alter table public.bookmarks add primary key (user_id, id);
   end if;
 end $$;
