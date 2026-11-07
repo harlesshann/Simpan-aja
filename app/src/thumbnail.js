@@ -31,3 +31,10 @@ export function thumbnailFor(bookmark) {
     src: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`,
   };
 }
+
+// Label placeholder (huruf awal) sampai gambar termuat / saat gagal.
+// Padanan `siteName ?? getFallbackSiteName(url) ?? 'Bookmark'` di Tuckii.
+export function thumbLabel(bookmark, sourceLabelText) {
+  const t = thumbnailFor(bookmark);
+  return t.label || t.platform || sourceLabelText || sourceLabel(bookmark.url) || 'Bookmark';
+}

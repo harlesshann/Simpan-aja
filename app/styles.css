@@ -184,7 +184,11 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
   position: relative; width: 100%; aspect-ratio: 16 / 9;
   background: var(--surface-2); border: 2px solid var(--ink); overflow: hidden;
 }
-.card-thumb-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card-thumb-img {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0;
+}
+.card-thumb-img.is-loaded { opacity: 1; }
 .thumb-favicon .card-thumb-img { object-fit: contain; padding: 20%; background: var(--surface); }
 .thumb-tile {
   width: 100%; height: 100%; display: grid; place-items: center;

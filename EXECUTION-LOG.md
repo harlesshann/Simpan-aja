@@ -172,3 +172,10 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
   + skrip QA (`drive.mjs`, `shot.mjs`, `states.mjs`, `task6-11.mjs`, `final-qa.mjs`,
   `export-roundtrip.mjs`)
 - `QA-REPORT.md` (root, di samping `SPECS.md`/`PLAN.md`)
+
+## Fase 2: Placeholder thumbnail ala Tuckii
+
+- Kartu kini merender placeholder huruf awal (1 huruf, 	humbLabel: label tipe/platform -> sumber -> host -> 'Bookmark') sebelum gambar termuat; gambar menimpa placeholder saat load dan dibuang saat error (placeholder tersisa sebagai fallback).
+- Tidak ada endpoint baru: tetap i.ytimg.com + www.google.com/s2/favicons (SPECS §6.4), tanpa scrape HTML/backend.
+- 	ests/thumbnail.test.js +1 kasus (48 pass, 0 fail); QA qa/final-qa.mjs 14/14.
+- Berkas: pp/src/thumbnail.js, pp/src/render.js, pp/styles.css, 	ests/thumbnail.test.js.

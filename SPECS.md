@@ -90,7 +90,7 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
 3. Konsekuensi batasan 1–2 yang harus terlihat jujur di aplikasi: mengganti browser/perangkat atau menghapus data browser membuat koleksi tidak ikut — karena itu export JSON (§7.8) adalah jalan keluar resminya dan tombolnya harus mudah ditemukan.
 
-4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, (b) memuat embed video saat preview dibuka (§7.5), dan (c) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal.
+4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, (b) memuat embed video saat preview dibuka (§7.5), dan (c) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal: placeholder huruf awal tampil sampai gambar termuat, lalu menimpanya; bila gagal, placeholder tetap.
 
 5. Antarmuka dan semua pesan untuk pengguna dalam \*\*Bahasa Indonesia\*\*.
 

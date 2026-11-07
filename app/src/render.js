@@ -1,5 +1,5 @@
 import { TYPE_LABELS } from './constants.js';
-import { thumbnailFor } from './thumbnail.js';
+import { thumbnailFor, thumbLabel } from './thumbnail.js';
 import { posterDataUrl } from './poster.js';
 
 function el(tag, props = {}, children = []) {
@@ -24,31 +24,28 @@ const fmtDate = (iso) => {
 };
 
 function localTile(label, type) {
+  const initial = Array.from(String(label || '?'))[0] || '?';
   return el('div', {
     class: 'thumb-tile tile-' + type, role: 'img', 'aria-label': label || 'Bookmark',
-  }, [el('span', { text: (label || '?').slice(0, 2).toUpperCase() })]);
+  }, [el('span', { text: initial })]);
 }
 
+// Placeholder huruf awal tampil lebih dulu, gambar menimpanya saat `load`.
+// `error` membuang gambar sehingga placeholder tersisa (fallback lokal).
 // Review Focus 4: label/data pengguna hanya lewat textContent.
 export function createThumbEl(bookmark, sourceLabelText) {
   const t = thumbnailFor(bookmark);
   const wrap = el('div', { class: 'card-thumb thumb-' + t.kind });
-  if (t.kind === 'local') {
-    wrap.append(localTile(t.label, bookmark.type));
-  } else if (t.kind === 'poster') {
-    const img = el('img', {
-      class: 'card-thumb-img', src: posterDataUrl(bookmark, t.platform), alt: '',
-      loading: 'lazy', referrerpolicy: 'no-referrer',
-    });
-    img.onerror = () => wrap.replaceChildren(localTile(t.platform, bookmark.type));
-    wrap.append(img);
-  } else {
-    const img = el('img', {
-      class: 'card-thumb-img', src: t.src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer',
-    });
-    img.onerror = () => wrap.replaceChildren(localTile(t.kind === 'youtube' ? 'YouTube' : t.label, bookmark.type));
-    wrap.append(img);
-  }
+  wrap.append(localTile(thumbLabel(bookmark, sourceLabelText), bookmark.type));
+  if (t.kind === 'local') return wrap;
+
+  const src = t.kind === 'poster' ? posterDataUrl(bookmark, t.platform) : t.src;
+  const img = el('img', {
+    class: 'card-thumb-img', src, alt: '', loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer',
+  });
+  img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
+  img.addEventListener('error', () => img.remove(), { once: true });
+  wrap.append(img);
   return wrap;
 }
 

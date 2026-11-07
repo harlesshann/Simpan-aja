@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { thumbnailFor } from '../app/src/thumbnail.js';
+import { thumbnailFor, thumbLabel } from '../app/src/thumbnail.js';
 import { posterSvg, posterDataUrl } from '../app/src/poster.js';
 import { youtubeVideoId } from '../app/src/detect.js';
 
@@ -42,6 +42,14 @@ test('platform embed-tertutup jatuh ke poster lokal', () => {
 test('command dan URL tak valid jatuh ke tile lokal', () => {
   assert.deepEqual(thumbnailFor({ type: 'command', command: 'ls -la' }), { kind: 'local', label: 'Command' });
   assert.deepEqual(thumbnailFor({ type: 'other', url: null }), { kind: 'local', label: 'Bookmark' });
+});
+
+test('thumbLabel: label placeholder selalu ada (siteName -> host -> Bookmark)', () => {
+  assert.equal(thumbLabel({ type: 'command', command: 'ls' }), 'Command');
+  assert.equal(thumbLabel({ type: 'video', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }, 'YouTube'), 'YouTube');
+  assert.equal(thumbLabel({ type: 'website', url: 'https://web.dev/learn/css' }), 'web.dev');
+  assert.equal(thumbLabel({ type: 'video', url: 'https://www.tiktok.com/@x/video/1' }), 'TikTok');
+  assert.equal(thumbLabel({ type: 'other', url: null }, 'Koleksi'), 'Bookmark');
 });
 
 test('posterSvg: platform + host + judul di dalam SVG', () => {
