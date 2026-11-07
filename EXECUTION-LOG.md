@@ -37,7 +37,11 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
    `backup.js`; `onsubmit` di-`await` dan menampilkan pesan bila gagal.
 5. **HP masih memakai JS lama**: `py -m http.server` tak mengirim `Cache-Control`, jadi
    Chrome Android menyajikan modul dari cache (log: hanya `GET /` 304, nol request
-   `/src/*.js`). Fix: `serve.py` di root proyek — `ThreadingHTTPServer` + `no-store`.
+   `/src/*.js`). Fix: `serve.py` di root proyek — `ThreadingHTTPServer` + `no-store` +
+   versi otomatis `?v=<start>` pada setiap referensi modul (termasuk entry di HTML),
+   sehingga URL berubah tiap server restart dan cache lama tidak pernah terpakai.
+   Diverifikasi di origin insecure `http://192.168.100.105:8000` (`isSecureContext:
+   false`, `randomUUID: undefined`) → simpan berhasil.
 
 ## Verifikasi
 

@@ -12,8 +12,10 @@ py serve.py
 ```
 
 Lalu buka `http://localhost:8000/` (atau alamat kanonis Anda). `serve.py` mengirim
-`Cache-Control: no-store`, jadi perubahan kode langsung terpakai setelah reload —
-berbeda dari `py -m http.server` yang membuat browser memakai JS lama dari cache.
+`Cache-Control: no-store` dan menambahkan versi otomatis (`?v=<waktu-start>`) pada
+setiap referensi modul, jadi setelah server dijalankan ulang browser selalu memakai
+kode terbaru tanpa perlu menghapus cache — beda dengan `py -m http.server` yang
+membuat HP memakai JS lama dari cache.
 
 > **Penting:** data hanya tersimpan di browser dan alamat yang Anda pakai. Ganti
 > browser, ganti perangkat, atau ganti alamat (port/domain/path) = koleksi tampak
