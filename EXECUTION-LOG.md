@@ -254,3 +254,6 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 
 - Fix: akun kedua merah karena cache lokal akun pertama didorong ke akun baru (upsert menabrak baris milik user lain -> RLS menolak). `sync.js`: `shouldResetLocal` + `clearLocalData` (`db.js`) saat `meta.userId` berbeda; akun sama / login pertama tidak direset; `meta.userId` disimpan setelah reset. QA kriteria 12 diperbarui: `esm.sh` + `*.supabase.co` sumber sah (§6.4). Tes 58 pass, QA 14/14.
 
+
+- Fix lanjutan: recovery reaktif saat upsert ditolak RLS (`isRlsError`). Cache lokal dari instalasi lama belum punya `meta.userId` sehingga reset proaktif tidak jalan; sekarang `syncAll` membersihkan cache sekali, set `meta.userId`, pull ulang, lalu flush (guard `recovered` per sesi). Tes 59 pass, QA 14/14.
+
