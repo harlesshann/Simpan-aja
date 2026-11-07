@@ -1,7 +1,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SYNC_ENABLED } from './config.js';
 import {
   getMeta, setMeta, listOutbox, clearOutbox, enqueueChange,
-  getBookmarkRow, getCollectionRow, rawPut, rawDelete,
+  getBookmarkRow, getCollectionRow, rawPut, rawDelete, clearLocalData,
   listBookmarks, listCollections,
 } from './db.js';
 
@@ -58,6 +58,12 @@ export function fromRemote(store, row) {
     createdAt: row.created_at, updatedAt: row.updated_at,
     deletedAt: row.deleted_at ?? null,
   };
+}
+
+// Akun berganti (bukan login pertama): cache lokal milik akun lama harus
+// dibuang supaya tidak didorong ke akun baru.
+export function shouldResetLocal(prevUserId, nextUserId) {
+  return Boolean(prevUserId && nextUserId && prevUserId !== nextUserId);
 }
 
 // Baris lokal sudah tidak ada (hapus permanen) -> kirim tombstone.
@@ -234,6 +240,14 @@ export async function initSync({ onStatus = () => {}, onRemoteChange = () => {} 
     if (!next) { unsubscribe(); return; }
     if (!switched) return; // token refresh: tidak perlu tarik ulang
     try {
+      // Akun berganti: cache lokal milik akun lama jangan ikut didorong ke
+      // akun baru (id bisa menabrak baris milik user lain → RLS menolak).
+      const prevUser = await getMeta('userId', null);
+      if (shouldResetLocal(prevUser, next.id)) {
+        await clearLocalData();
+        await onRemoteChange();
+      }
+      await setMeta('userId', next.id);
       // Tarik dulu supaya versi server yang lebih baru menang sebelum data
       // lokal lama diunggah (LWW tetap benar saat login pertama).
       await pullAll();

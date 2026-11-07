@@ -161,3 +161,13 @@ export async function rawDelete(store, id) {
   tx.objectStore(store).delete(id);
   await txDone(tx);
 }
+
+// Dipakai saat akun berganti: cache lokal milik akun lama jangan didorong
+// ke akun baru (id-nya bisa menabrak baris milik user lain → RLS menolak).
+export async function clearLocalData() {
+  const db = await openDB();
+  const stores = ['bookmarks', 'collections', 'outbox', 'meta'];
+  const tx = db.transaction(stores, 'readwrite');
+  for (const s of stores) tx.objectStore(s).clear();
+  await txDone(tx);
+}

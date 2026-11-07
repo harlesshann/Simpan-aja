@@ -251,3 +251,6 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Verifikasi: unit 57 pass / 0 fail; `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5; cek runtime headless tanpa error, tombol tampil `Lokal` (nonaktif) saat config kosong. Bukti: qa/sync-auth-empty.png.
 - Langkah manual user: buat project Supabase, jalankan `supabase/schema.sql`, aktifkan Google OAuth + Redirect URLs, isi `app/src/config.js`, deploy ulang.
 
+
+- Fix: akun kedua merah karena cache lokal akun pertama didorong ke akun baru (upsert menabrak baris milik user lain -> RLS menolak). `sync.js`: `shouldResetLocal` + `clearLocalData` (`db.js`) saat `meta.userId` berbeda; akun sama / login pertama tidak direset; `meta.userId` disimpan setelah reset. QA kriteria 12 diperbarui: `esm.sh` + `*.supabase.co` sumber sah (§6.4). Tes 58 pass, QA 14/14.
+

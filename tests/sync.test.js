@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decide, toRemote, fromRemote, outboxPayload, PULL_PAGE } from '../app/src/sync.js';
+import { decide, toRemote, fromRemote, outboxPayload, shouldResetLocal, PULL_PAGE } from '../app/src/sync.js';
 
 const bookmark = {
   id: 'b1', title: 'Video Remotion', type: 'video',
@@ -73,4 +73,11 @@ test('outboxPayload: baris hilang jadi tombstone', () => {
 
 test('PULL_PAGE wajar untuk paginasi', () => {
   assert.ok(PULL_PAGE >= 100 && PULL_PAGE <= 1000);
+});
+
+test('shouldResetLocal: reset hanya saat akun berganti', () => {
+  assert.equal(shouldResetLocal(null, 'u2'), false);   // login pertama: klaim data lokal
+  assert.equal(shouldResetLocal('u1', 'u1'), false);   // login ulang akun sama
+  assert.equal(shouldResetLocal('u1', 'u2'), true);    // akun berganti
+  assert.equal(shouldResetLocal('u1', null), false);   // sign out
 });

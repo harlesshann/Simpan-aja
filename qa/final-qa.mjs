@@ -427,6 +427,9 @@ const APPROVED = [
   /^https:\/\/i\.ytimg\.com\//,
   /^https:\/\/www\.google\.com\/s2\/favicons\?/,
   /^https:\/\/[a-z0-9-]+\.gstatic\.com\//,
+  // Sinkron (opsional, §6.4): SDK supabase-js dari esm.sh + project Supabase milik user.
+  /^https:\/\/esm\.sh\//,
+  /^(https|wss?):\/\/[a-z0-9-]+\.supabase\.co\//,
 ];
 const external = requests.filter((u) => !u.startsWith('http://localhost:8000') && !u.startsWith('data:'));
 const unexpected = external.filter((u) => !APPROVED.some((re) => re.test(u)));
