@@ -123,16 +123,17 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 
 .collection-list { display: flex; gap: 10px; overflow-x: auto; padding: 12px 2px 6px; }
 @media (min-width: 1024px) {
-  .collection-list { flex-direction: column; overflow: visible; }
+  /* Kotak folder dua kolom di sidebar, bukan bar selebar sidebar. */
+  .collection-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; overflow: visible; }
 }
 .collection-item {
   position: relative;
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  min-height: 46px; padding: 8px 12px; margin-top: 11px; flex: 0 0 auto;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px;
+  width: 132px; min-height: 64px; padding: 11px 9px 8px; margin-top: 11px; flex: 0 0 auto;
   background: var(--folder, var(--accent));
   border: var(--bw) solid var(--ink); border-radius: 0;
   box-shadow: var(--shadow-sm); color: var(--ink);
-  font: inherit; font-size: 14px; font-weight: 700; text-align: left; white-space: nowrap;
+  font: inherit; font-size: 13px; font-weight: 700; line-height: 1.2; text-align: left;
 }
 /* Tab folder di atas (warna sama dengan badan) */
 .collection-item::before {
@@ -140,17 +141,20 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
   width: 44%; height: 14px; background: var(--folder, var(--accent));
   border: var(--bw) solid var(--ink); border-bottom: none;
 }
-.collection-item .collection-name { overflow: hidden; text-overflow: ellipsis; }
+.collection-item .collection-name {
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
 .collection-item.is-all { background: var(--ink); color: var(--accent); }
 .collection-item.is-all::before { background: var(--ink); }
 .collection-item.is-none { background: var(--surface-2); }
 .collection-item.is-none::before { background: var(--surface-2); }
-@media (min-width: 1024px) { .collection-item { width: 100%; white-space: normal; } }
+@media (min-width: 1024px) { .collection-item { width: 100%; } }
 .collection-item:hover { box-shadow: 5px 5px 0 var(--ink); }
 .collection-item[aria-current="true"] { box-shadow: 6px 6px 0 var(--ink); transform: translate(-2px, -2px); }
 .collection-item .count {
-  font-family: var(--mono); color: var(--ink); font-size: 12px; font-weight: 700;
-  background: var(--surface); border: 2px solid var(--ink); padding: 1px 5px; flex: 0 0 auto;
+  font-family: var(--mono); color: var(--ink); font-size: 11px; font-weight: 700;
+  background: var(--surface); border: 2px solid var(--ink); padding: 0 4px; flex: 0 0 auto;
 }
 .collection-item.is-all .count { color: var(--ink); }
 .collection-item.is-none .count { color: var(--ink); }

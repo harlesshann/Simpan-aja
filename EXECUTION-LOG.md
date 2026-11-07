@@ -212,3 +212,5 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Dialog Kelola Koleksi: swatch warna per Koleksi (ubah langsung) + pemilih warna untuk Koleksi baru; `onCreate(name, color)` dan `onColorChange(id, color)` di `app/src/form.js` + wiring `app/src/main.js`. esolveNewCollection memberi warna default.
 - Backup: export/import membawa `color`; nilai rusak/kosong jatuh ke default (`app/src/backup.js`). Koleksi lama tanpa warna otomatis default.
 - Tes: 51 pass, 0 fail (tes baru untuk round-trip warna Koleksi). QA `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5. Bukti visual: `qa/collections-sidebar.png`, `qa/collections-manage.png`, `qa/collections-mobile.png`.
+
+- Koleksi folder: item dikecilkan jadi kotak folder (132px, 2 kolom grid di sidebar desktop) bukan bar selebar sidebar; nama dibatasi 2 baris, lencana jumlah di bawah. Bukti: `qa/collections-sidebar.png`, `qa/collections-mobile.png`.
