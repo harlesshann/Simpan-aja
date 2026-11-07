@@ -80,25 +80,25 @@ Hasil berikut dianggap \*\*gagal\*\* walaupun aplikasinya secara teknis berjalan
 
 - Preview video yang menjanjikan semua platform bisa diputar di dalam popup (janji palsu — fitur preview telah \*\*dihapus\*\*, lihat §7.5).
 
-- Data pengguna terkirim ke server/analytics pihak mana pun.
+- Data pengguna terkirim ke server/analytics pihak mana pun **tanpa sepengetahuan pengguna**. Sinkronasi (§7.9) bersifat opsional: hanya berjalan setelah pengguna menekan `Masuk`; tanpa login tidak ada data yang keluar dari perangkat.
 
 ## 6. Batasan (Constraints)
 
-1. \*\*Lokal &amp; satu perangkat:\*\* aplikasi berjalan client-only di satu browser/perangkat. Tanpa login &amp; sync. \*\*\[Handy\]\*\*
+1. \*\*Offline-first, sinkron opsional:\*\* aplikasi tetap berjalan client-only dari IndexedDB dan bisa dipakai penuh tanpa internet maupun tanpa login. Bila pengguna menekan `Masuk` (Google OAuth via Supabase), data mulai disalin ke server dan disamakan antar-device. Tanpa login tidak ada data keluar dari perangkat. Konflik diselesaikan *last-write-wins* lewat `updatedAt`. \*\*\[Handy — amendemen scope untuk fitur sinkron\]\*\*
 
 2. \*\*Penyimpanan lokal browser:\*\* data disimpan di penyimpanan lokal browser pada perangkat itu (IndexedDB — pola yang sama seperti aplikasi SnippetCode milik Handy, yang sanggup menampung koleksi besar dan teks command panjang, melebihi batas praktis localStorage). \*\*\[Usulan Harless\]\*\*
 
-3. Konsekuensi batasan 1–2 yang harus terlihat jujur di aplikasi: mengganti browser/perangkat atau menghapus data browser membuat koleksi tidak ikut — karena itu export JSON (§7.8) adalah jalan keluar resminya dan tombolnya harus mudah ditemukan.
+3. Konsekuensi batasan 1–2 yang harus terlihat jujur di aplikasi: mengganti browser/perangkat atau menghapus data browser membuat koleksi tidak ikut — karena itu export JSON (§7.8) tetap jalan keluar resmi dan tombolnya harus mudah ditemukan. Bila pengguna login, data antar-device disamakan otomatis oleh sinkron (§7.9); export tetap berguna sebagai backup.
 
-4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, dan (b) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal: placeholder huruf awal tampil sampai gambar termuat, lalu menimpanya; bila gagal, placeholder tetap.
+4. \*\*Panggilan jaringan dibatasi dan eksplisit.\*\* Aplikasi boleh memanggil jaringan hanya untuk: (a) membuka link bookmark yang diklik pengguna, dan (b) \*\*memuat gambar thumbnail kartu\*\* dari dua sumber tetap: `https://i.ytimg.com/vi/<id>/hqdefault.jpg` (thumbnail asli YouTube) dan `https://www.google.com/s2/favicons?domain=<host>&sz=128` (favicon situs). dan (c) \*\*sinkronasi setelah pengguna menekan `Masuk`\*\*: memuat `supabase-js` dari `https://esm.sh/@supabase/supabase-js@2`, lalu memanggil project Supabase pengguna (REST + Realtime) di domain `https://<project>.supabase.co`. Tidak ada endpoint lain, tidak ada pembacaan isi halaman sumber, tidak ada analytics/tracking. Gambar dimuat lazy (hanya saat kartu masuk viewport) dan punya fallback lokal bila gagal: placeholder huruf awal tampil sampai gambar termuat, lalu menimpanya; bila gagal, placeholder tetap.
 
 5. Antarmuka dan semua pesan untuk pengguna dalam \*\*Bahasa Indonesia\*\*.
 
 6. Harus nyaman dipakai pada layar HP (±390px) dan desktop (±1280px). \*\*\[Usulan Harless — mengikuti standar QA proyek Handy sebelumnya\]\*\*
 
-7. \*\*Alamat kanonis \[Usulan Harless\]:\*\* aplikasi disampaikan sebagai situs statis pada \*\*satu alamat HTTPS yang stabil\*\* (pola yang sama seperti SnippetCode di GitHub Pages). Data lokal terikat pada alamat (origin) dan browser itu: membuka alamat yang berbeda (file lokal, `localhost`, domain lain) akan menampilkan toko data yang berbeda dan tampak kosong. Karena itu aplikasi harus selalu dibuka dari alamat kanonis dan browser utama yang sama, link 1-tap Muse (§7.7) selalu memakai alamat kanonis itu, dan `file://` bukan rumah kanonis yang didukung (Clipboard API untuk Copy 1-klik juga membutuhkan konteks aman HTTPS/`localhost`). Akun/domain hosting persisnya adalah detail tahap rencana.
+7. \*\*Alamat kanonis \[Usulan Harless\]:\*\* aplikasi disampaikan sebagai situs statis pada \*\*satu alamat HTTPS yang stabil\*\* (pola yang sama seperti SnippetCode di GitHub Pages). Data lokal terikat pada alamat (origin) dan browser itu: membuka alamat yang berbeda (file lokal, `localhost`, domain lain) akan menampilkan toko data yang berbeda dan tampak kosong. Karena itu aplikasi harus selalu dibuka dari alamat kanonis dan browser utama yang sama, link 1-tap Muse (§7.7) selalu memakai alamat kanonis itu, dan `file://` bukan rumah kanonis yang didukung (Clipboard API untuk Copy 1-klik juga membutuhkan konteks aman HTTPS/`localhost`). Akun/domain hosting persisnya adalah detail tahap rencana. Login sinkron (§7.9) juga memakai alamat kanonis ini sebagai `redirectTo` OAuth, jadi ganti alamat = sesi/data tampak baru.
 
-8. \*\*Perangkat &amp; browser utama \[Handy — kode `1a`\]:\*\* rumah kanonis SimpanAja adalah \*\*HP Handy\*\* — aplikasi selalu dipakai dari browser utama yang sama di HP itu, dan link 1-tap Muse (§7.7) diketuk di HP yang sama. Laptop/desktop tetap harus bisa menampilkan aplikasi dengan baik (§6 butir 6), tetapi toko data di browser lain adalah toko terpisah dan bukan koleksi utama; pemindahan antar perangkat dilakukan lewat export/import JSON (§7.8).
+8. \*\*Perangkat &amp; browser utama \[Handy — kode `1a`\]:\*\* rumah kanonis SimpanAja adalah \*\*HP Handy\*\* — aplikasi selalu dipakai dari browser utama yang sama di HP itu, dan link 1-tap Muse (§7.7) diketuk di HP yang sama. Laptop/desktop tetap harus bisa menampilkan aplikasi dengan baik (§6 butir 6), dan bisa menjadi perangkat kedua yang datanya sama lewat login sinkron (§7.9). Tanpa login, toko data di browser lain tetap toko terpisah dan pemindahan dilakukan lewat export/import JSON (§7.8).
 
 9. \*\*Bentuk halaman web biasa, bukan PWA \[Handy — kode `2b`\]:\*\* v1 adalah halaman web biasa. Tidak ada manifest, service worker, ikon home-screen, mode offline terpasang, maupun permintaan penyimpanan persisten (`[navigator.storage](http://navigator.storage).persist()`) di v1. Konsekuensinya diterima secara sadar: penyimpanan yang dipakai adalah penyimpanan situs biasa, sehingga export JSON (§7.8) tetap menjadi pengaman utama data dan tombolnya harus mudah ditemukan.
 
@@ -330,6 +330,22 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
   - Selesai import, tampilkan ringkasan: `X ditambahkan, Y dilewati (duplikat), Z Koleksi baru dibuat`.
 
+### 7.9 Sinkronasi antar-device (opsional) \*\*\[Handy — amendemen scope untuk fitur sinkron\]\*\*
+
+- \*\*Menyalakan:\*\* tombol `Masuk` di kaki sidebar → Google OAuth (Supabase Auth). Setelah login, tombol berubah jadi `Keluar` dan muncul titik status: hijau `Tersinkron`, kuning `Menyinkronkan...`, abu `Offline`, merah `Sinkron gagal`. Bila `app/src/config.js` belum diisi, tombol tampil `Lokal` (nonaktif) dan aplikasi tetap lokal penuh.
+
+- \*\*Offline-first:\*\* semua baca/tulis tetap ke IndexedDB. Perubahan lokal mengantre di penyimpanan `outbox` dan dikirim saat online. Aplikasi tetap berfungsi tanpa internet &amp; tanpa login — sinkron hanyalah lapisan tambahan.
+
+- \*\*Arah data:\*\* saat menambah/edit/hapus, aplikasi mendorong (push) ke server. Saat aplikasi dibuka, jendela difokus lagi, event Realtime masuk, atau koneksi kembali online, aplikasi menarik (pull) baris dengan `updated_at` lebih baru dari cursor (`meta.lastPull`), halaman per 200 baris.
+
+- \*\*Menang konflik:\*\* *last-write-wins* lewat `updatedAt`. Bila `id` sama muncul di dua device, versi dengan timestamp lebih baru menang. Menghapus = \*\*tombstone\*\* (`deletedAt`/`deleted_at`) supaya penghapusan ikut tersebar ke device lain, bukan muncul kembali.
+
+- \*\*Login pertama:\*\* data lokal yang sudah ada diunggah ke akun (bootstrap) agar koleksi lama ikut, lalu sinkron dua arah.
+
+- \*\*Keamanan:\*\* kolom `user_id` diisi `auth.uid()`; RLS membatasi tiap baris hanya untuk pemiliknya. Anon key memang publik; `service_role` key \*\*tidak pernah\*\* ditaruh di browser.
+
+- \*\*Batas yang jujur:\*\* mengedit item yang sama di dua device saat keduanya offline bisa membuat satu versi hilang (LWW); jam device yang miring bisa membuat urutan `updated_at` keliru. Gambar kustom (≤500KB) disimpan sebagai kolom teks; free tier Supabase (±500MB) setara ±1.200 gambar sebelum perlu pindah ke object storage.
+
 ## 8. Model Data &amp; Aturan Turunan
 
 ### 8.1 Bookmark
@@ -354,6 +370,10 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
 | `createdAt` / `updatedAt` | Timestamp ISO 8601; `createdAt` tidak berubah saat edit |
 
+| `image` | Opsional; data URL gambar hasil kompresi lokal (≤500KB) |
+
+| `deletedAt` | Timestamp ISO 8601 atau `null`; tombstone sinkron — baris bertanda hapus disembunyikan dari UI. Relevan setelah login (§7.9); tanpa login selalu `null` |
+
 ### 8.2 Koleksi (Collection)
 
 | Field | Aturan |
@@ -367,6 +387,8 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 | `createdAt` | Timestamp ISO 8601 |
 
 | `color` | Opsional; hex `#rrggbb` dari palet tetap. Bila kosong/tidak valid → warna default. Ikut pada export/import JSON. |
+
+| `updatedAt` / `deletedAt` | Dipakai sinkron: penentu last-write-wins &amp; tombstone (§7.9); `null` tanpa login |
 
 ### 8.3 Aturan tebak tipe dari domain \*\*\[Handy — ditebak otomatis; tabel: Usulan Harless\]\*\*
 

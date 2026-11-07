@@ -10,6 +10,7 @@ import {
 } from './db.js';
 import { buildExport, planImport } from './backup.js';
 import { decodeAddPayload } from './codec.js';
+import { initSync } from './sync.js';
 
 /* ----------------------------------------------------------------
    State hidup di IndexedDB lewat db.js; export/import lewat backup.js.
@@ -28,6 +29,8 @@ const els = {
   detailPage: document.getElementById('detailPage'),
   toggleSidebar: document.getElementById('btnToggleSidebar'),
   backdrop: document.getElementById('sidebarBackdrop'),
+  auth: document.getElementById('btnAuth'),
+  syncDot: document.getElementById('syncStatus'),
 };
 
 const state = { query: '', type: 'all', collection: 'all' };
@@ -359,6 +362,49 @@ function handleAddFragment() {
   }
   openAdd(res.value);
 }
+
+/* ----------------------------------------------------------------
+   Sinkronasi (opsional): Masuk/Keluar + status di kaki sidebar.
+--------------------------------------------------------------- */
+
+let syncApi = null;
+let syncSignedIn = false;
+
+function paintSync(s) {
+  syncSignedIn = Boolean(s.user);
+  els.auth.disabled = !s.enabled;
+  els.auth.textContent = s.enabled ? (syncSignedIn ? 'Keluar' : 'Masuk') : 'Lokal';
+  els.auth.title = !s.enabled
+    ? 'Sinkron belum dikonfigurasi (isi app/src/config.js)'
+    : syncSignedIn
+      ? `Keluar dari ${s.user.email || 'akun Google'}`
+      : 'Masuk dengan Google untuk sinkron antar-device';
+  const mode = !s.enabled ? 'is-off' : !syncSignedIn ? 'is-off'
+    : s.syncing ? 'is-busy'
+    : s.error ? 'is-error'
+    : s.online ? 'is-ok' : 'is-offline';
+  els.syncDot.className = `sync-dot ${mode}`;
+  els.syncDot.title = !s.enabled ? 'Sinkron nonaktif'
+    : !syncSignedIn ? 'Belum masuk'
+    : s.syncing ? 'Menyinkronkan...'
+    : s.error ? 'Sinkron gagal, coba lagi'
+    : s.online ? 'Tersinkron' : 'Offline';
+}
+
+els.auth.onclick = () => {
+  if (!syncApi) return;
+  if (syncSignedIn) syncApi.signOut();
+  else syncApi.signIn();
+};
+
+// Jangan await: import supabase-js dari CDN bisa lambat, jangan tahan render.
+void initSync({
+  onStatus: paintSync,
+  onRemoteChange: async () => {
+    await render();
+    if (itemIdFromHash()) route();
+  },
+}).then((api) => { syncApi = api; });
 
 wire();
 applySidebar();

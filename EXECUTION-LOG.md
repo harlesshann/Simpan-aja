@@ -234,3 +234,20 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Tes: 51 pass, 0 fail. QA 14/14 dan 5/5. Bukti: qa/sidebar-mobile-closed.png, qa/sidebar-mobile-open.png, qa/sidebar-desktop-open.png, qa/sidebar-desktop-collapsed.png.
 
 - Revisi: tombol buka/tutup Koleksi hanya untuk HP. Desktop kembali tanpa tombol `Koleksi` - sidebar selalu tampil (default terbuka), grid tetap 2 kolom. Logika desktop-collapse dihapus; sisa drawer HP. Bukti: qa/sidebar-desktop-open.png (tanpa toggle), qa/sidebar-mobile-closed.png, qa/sidebar-mobile-open.png. qa/sidebar-desktop-collapsed.png dihapus.
+
+## Sinkronasi antar-device (Supabase, Google OAuth, offline-first + last-write-wins)
+
+- Keputusan user: stack Supabase, login Google OAuth, offline-first + LWW. Scope SPECS diamendemen (izIn user).
+- `app/src/db.js`: `DB_VERSION` 1 -> 2; store baru `outbox` (seq autoIncrement) + `meta`; tulis lokal selalu stamp `updatedAt` + enqueue + dispatch `simpanaja:local-change`; tulis server lewat `rawPut`/`rawDelete` (tanpa stamp/outbox).
+- `app/src/config.js` (baru): `SUPABASE_URL` + `SUPABASE_ANON_KEY`; kosong => sync nonaktif, app lokal penuh.
+- `app/src/sync.js` (baru): import dinamis `esm.sh/@supabase/supabase-js@2` dalam try/catch (app tetap jalan offline); session + `onAuthStateChange`; pull via cursor `meta.lastPull:<table>` per tabel (halaman 200); push outbox; realtime `postgres_changes` (debounce 250ms, filter user_id); listener online/offline/focus; bootstrap data lama saat login pertama; helper murni `decide`/`toRemote`/`fromRemote`/`outboxPayload`.
+- `app/index.html`: tombol `#btnAuth` + titik status `#syncStatus` di kaki sidebar; teks catatan & hint gambar diperbarui.
+- `app/styles.css`: gaya `.sidebar-account` + `.sync-dot` (ok/busy/error/offline/off).
+- `app/src/main.js`: wiring `initSync` (di-await tidak, agar CDN tak menahan render), `paintSync`, klik Masuk/Keluar, re-render + `route()` saat perubahan remote.
+- `supabase/schema.sql` (baru): tabel `collections`/`bookmarks` (user_id default auth.uid(), created_at/updated_at/deleted_at, konten nullable untuk tombstone), RLS per-user, replica identity full, publication realtime.
+- `tests/sync.test.js` (baru): 6 tes fungsi murni (LWW, tombstone, mapping camel<->snake, outbox tombstone).
+- `SPECS.md`: §5 anti-goal privasi dipertegas (sync opsional setelah Masuk), §6.1 offline-first + sync opsional, §6.3, §6.4 whitelist + Supabase/esm.sh, §6.7 redirect OAuth, §6.8 perangkat kedua, §7.9 baru (Sinkronasi), §8 model data + deletedAt/updatedAt.
+- `app/README.md`: intro, catatan, fitur gambar, seksi Sinkron + langkah setup Supabase, daftar non-fitur diperbarui.
+- Verifikasi: unit 57 pass / 0 fail; `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5; cek runtime headless tanpa error, tombol tampil `Lokal` (nonaktif) saat config kosong. Bukti: qa/sync-auth-empty.png.
+- Langkah manual user: buat project Supabase, jalankan `supabase/schema.sql`, aktifkan Google OAuth + Redirect URLs, isi `app/src/config.js`, deploy ulang.
+

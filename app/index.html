@@ -26,7 +26,7 @@
 
 <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
 
-<p class="local-note" role="note">Data tersimpan lokal di browser ini. Export JSON adalah jalan backup-nya.</p>
+<p class="local-note" role="note">Data tersimpan di perangkat ini. Masuk dengan Google untuk sinkron antar-device; Export JSON tetap jalan backup-nya.</p>
 
 <main class="layout">
   <aside class="sidebar" id="appSidebar">
@@ -36,6 +36,10 @@
       <button id="btnCloseSidebar" class="btn btn-quiet sidebar-close" type="button" aria-label="Tutup Koleksi">&times;</button>
     </div>
     <nav id="collectionList" class="collection-list" aria-label="Filter Koleksi"></nav>
+    <div class="sidebar-account">
+      <span id="syncStatus" class="sync-dot is-off" aria-hidden="true"></span>
+      <button id="btnAuth" class="btn btn-quiet" type="button" disabled>Lokal</button>
+    </div>
   </aside>
 
   <section class="content">
@@ -81,7 +85,7 @@
         <img id="fImageThumb" alt="Pratinjau gambar" />
         <button type="button" id="btnClearImage" class="btn btn-small">Hapus gambar</button>
       </div>
-      <p class="field-hint">Gambar disimpan di perangkat ini, bukan diunggah ke server.</p>
+      <p class="field-hint">Gambar ikut tersimpan di data bookmark dan tersinkron bila Anda masuk akun.</p>
     </div>
     <div class="field">
       <label for="fCollection">Koleksi</label>

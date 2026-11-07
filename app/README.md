@@ -1,7 +1,8 @@
 # SimpanAja
 
-Bookmark manager pribadi satu halaman, sepenuhnya di browser. Tidak ada login,
-tidak ada server, tidak ada sync.
+Bookmark manager pribadi satu halaman, sepenuhnya di browser. Tanpa login data
+tetap lokal; login Google (opsional) menyalakan sinkron antar-device lewat
+Supabase.
 
 ## Cara membuka
 
@@ -17,9 +18,10 @@ setiap referensi modul, jadi setelah server dijalankan ulang browser selalu mema
 kode terbaru tanpa perlu menghapus cache — beda dengan `py -m http.server` yang
 membuat HP memakai JS lama dari cache.
 
-> **Penting:** data hanya tersimpan di browser dan alamat yang Anda pakai. Ganti
-> browser, ganti perangkat, atau ganti alamat (port/domain/path) = koleksi tampak
-> kosong. Karena itu **Export JSON adalah jalan backup satu-satunya**.
+> **Penting:** data tersimpan di browser dan alamat yang Anda pakai. Ganti browser,
+> perangkat, atau alamat (port/domain/path) = koleksi tampak kosong. Login sinkron
+> membuat perangkat lain melihat data yang sama; tanpa login, **Export JSON** tetap
+> jalan backup utama.
 
 ## Fitur
 
@@ -29,8 +31,8 @@ membuat HP memakai JS lama dari cache.
   judul hasil turunan tetap bisa diedit nanti.
 - **Gambar (opsional):** di form Tambah/Edit kamu bisa memilih file gambar
   (PNG/JPG/WebP/GIF). Gambar dipotong 16:9 dan dikompres di perangkat menjadi
-  data URL, **tidak diunggah ke server**, lalu dipakai sebagai thumbnail kartu.
-  Bisa diganti atau dihapus lewat `Edit`.
+  data URL, lalu dipakai sebagai thumbnail kartu. Disimpan sebagai bagian data
+  bookmark; ikut tersinkron bila kamu login. Bisa diganti atau dihapus lewat `Edit`.
 - **Tipe:** Video, Website, Command, Repo GitHub, Extension, Lainnya.
 - **Search:** mencari di judul, catatan, URL, isi command, dan nama Koleksi.
   Semua kata harus cocok (AND).
@@ -65,6 +67,40 @@ membuat HP memakai JS lama dari cache.
   Gambar yang tidak valid (bukan bitmap data URL atau terlalu besar) dibuang saat
   import, itemnya tetap masuk.
 
+## Sinkron antar-device (opsional, Supabase)
+
+Tanpa login aplikasi tetap 100% lokal. Untuk menyamakan data HP & laptop:
+
+1. Buat project di [supabase.com](https://supabase.com) (free tier cukup untuk 1 akun).
+2. Buka **SQL Editor**, tempel isi `supabase/schema.sql`, jalankan sekali. Ini membuat
+   tabel `bookmarks` + `collections`, RLS per-user, dan menyalakan Realtime.
+3. **Authentication → Providers → Google**: aktifkan, isi Client ID/Secret dari
+   Google Cloud Console. Tambahkan alamat aplikasi di **URL Configuration →
+   Redirect URLs** (mis. `https://domain-anda.vercel.app/`) dan `http://localhost:8000/`.
+4. **Project Settings → API**: salin **Project URL** dan **anon public key**, isi di
+   `app/src/config.js`:
+   ```js
+   export const SUPABASE_URL = 'https://xxxx.supabase.co';
+   export const SUPABASE_ANON_KEY = 'eyJ...';
+   ```
+5. Deploy ulang. Tombol `Masuk` di kaki sidebar aktif. Masuk sekali di tiap device.
+
+Cara kerja singkat:
+
+- Semua baca/tulis tetap ke IndexedDB (offline-first). Perubahan mengantre di
+  `outbox` dan dikirim saat online.
+- Konflik diselesaikan **last-write-wins** lewat `updatedAt`. Hapus memakai
+  tombstone `deletedAt`, jadi penghapusan ikut tersebar.
+- Login pertama mengunggah data lokal yang sudah ada, lalu tarik data server.
+- Titik status: hijau `Tersinkron`, kuning `Menyinkronkan...`, abu `Offline`,
+  merah `Sinkron gagal`. Tanpa `config.js` terisi, tombol tampil `Lokal` (nonaktif).
+
+Batas yang perlu diketahui: anon key memang publik (aman), tetapi **jangan pernah**
+memakai `service_role` key di browser. Free tier Supabase ±500MB; gambar kustom
+(≤500KB) berarti sekitar 1.200 gambar sebelum perlu pindah ke object storage.
+Jangan pindah alamat/domain setelah koleksi terisi — origin adalah rumah data dan
+`redirectTo` OAuth.
+
 ## Link 1-tap Muse
 
 Muse (LLM di luar aplikasi) bisa membuat link yang membuka SimpanAja dengan
@@ -85,8 +121,9 @@ di-encode **base64url (UTF-8, tanpa padding)**:
 
 ## Yang sengaja tidak ada di v1
 
-Login, sync antar perangkat, PWA (manifest/service worker), tag, Pin/Favorit,
-auto-fetch deskripsi/konten halaman, analytics, dan impor otomatis dari platform lain.
+PWA (manifest/service worker), tag, Pin/Favorit, auto-fetch deskripsi/konten
+halaman, analytics, dan impor otomatis dari platform lain.
 Thumbnail otomatis hanya diambil dari sumber yang diizinkan (YouTube + favicon Google);
-isi halaman tidak pernah dibaca. Gambar kustom hanya dari file yang kamu pilih sendiri
-dan disimpan lokal.
+isi halaman tidak pernah dibaca. Gambar kustom hanya dari file yang kamu pilih sendiri.
+Jaringan lain hanya dipakai saat kamu menekan `Masuk` (muat SDK dari `esm.sh` +
+project Supabase Anda).

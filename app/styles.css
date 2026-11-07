@@ -154,6 +154,23 @@ h1, h2, h3 { margin: 0; font-family: var(--mono); font-weight: 800; letter-spaci
 /* Folder Koleksi: bar memanjang selebar kolom (bukan kotak). */
 .collection-list { display: flex; flex-direction: column; gap: 12px; padding: 12px 0 6px; }
 @media (min-width: 1024px) { .collection-list { gap: 14px; } }
+
+/* Akun + status sinkron, di kaki sidebar. */
+.sidebar-account {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 16px; padding-top: 12px; border-top: 2px dashed var(--muted);
+}
+.sidebar-account .btn { margin-left: auto; }
+.sync-dot {
+  width: 11px; height: 11px; flex: 0 0 auto;
+  border: 2px solid var(--ink); border-radius: 50%;
+  background: var(--surface);
+}
+.sync-dot.is-ok { background: #39d98a; }
+.sync-dot.is-busy { background: var(--accent); }
+.sync-dot.is-error { background: var(--danger); }
+.sync-dot.is-offline { background: #b8b8b8; }
+.sync-dot.is-off { background: var(--surface); }
 .collection-item {
   position: relative;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;

@@ -11,7 +11,7 @@ export const TYPE_LABELS = {
 
 export const MAX_ADD_PAYLOAD_CHARS = 2000;
 export const DB_NAME = 'simpanaja';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 // Warna folder Koleksi. Nilai tetap (bukan teks pengguna) supaya aman dipakai di CSS.
 export const COLLECTION_COLORS = [
