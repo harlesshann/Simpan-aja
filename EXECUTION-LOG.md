@@ -223,3 +223,5 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Dialog Kelola Koleksi: nama di baris sendiri, lalu jumlah + Hapus, lalu swatch warna.
 - URL di halaman detail dibungkus di HP agar terbaca penuh.
 - Tes: 51 pass, 0 fail. QA qa/final-qa.mjs 14/14 (termasuk kriteria 11 tanpa overflow 390px); qa/manual-image.mjs 5/5. Bukti: qa/m-home.png, qa/m-detail.png, qa/m-manage.png, qa/m-form.png (menggantikan qa/collections-mobile.png).
+
+- Koleksi kembali jadi folder memanjang (bar selebar kolom, tab folder di atas, nama satu baris + lencana jumlah di kanan); berlaku desktop dan HP. Bukti: qa/collections-sidebar.png, qa/collections-mobile.png.
