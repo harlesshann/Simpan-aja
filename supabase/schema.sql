@@ -5,17 +5,18 @@
 -- (item dibuat & dihapus saat offline) tetap bisa di-upsert.
 
 create table if not exists public.collections (
-  id text primary key,
+  id text not null,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   name text,
   color text,
   created_at timestamptz,
   updated_at timestamptz not null default now(),
-  deleted_at timestamptz
+  deleted_at timestamptz,
+  primary key (user_id, id)
 );
 
 create table if not exists public.bookmarks (
-  id text primary key,
+  id text not null,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   title text,
   type text,
@@ -26,7 +27,8 @@ create table if not exists public.bookmarks (
   image text,
   created_at timestamptz,
   updated_at timestamptz not null default now(),
-  deleted_at timestamptz
+  deleted_at timestamptz,
+  primary key (user_id, id)
 );
 
 create index if not exists collections_user_updated on public.collections (user_id, updated_at);
@@ -51,3 +53,31 @@ alter table public.bookmarks replica identity full;
 -- berarti sudah aktif).
 alter publication supabase_realtime add table public.collections;
 alter publication supabase_realtime add table public.bookmarks;
+
+-- ------------------------------------------------------------------
+-- Migrasi dari versi lama (PK hanya `id`). Jalankan bagian ini SEKALI kalau
+-- tabel sudah ada sebelumnya. Idempoten: aman dijalankan berulang.
+-- ------------------------------------------------------------------
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint
+    where conname = 'collections_pkey'
+      and conrelid = 'public.collections'::regclass
+      and pg_get_constraintdef(oid) = 'PRIMARY KEY (id)'
+  ) then
+    alter table public.collections drop constraint collections_pkey;
+    alter table public.collections add primary key (user_id, id);
+  end if;
+  if exists (
+    select 1 from pg_constraint
+    where conname = 'bookmarks_pkey'
+      and conrelid = 'public.bookmarks'::regclass
+      and pg_get_constraintdef(oid) = 'PRIMARY KEY (id)'
+  ) then
+    alter table public.bookmarks drop constraint bookmarks_pkey;
+    alter table public.bookmarks add primary key (user_id, id);
+  end if;
+end $$;
+
+notify pgrst, 'reload schema';

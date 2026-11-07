@@ -257,3 +257,6 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 
 - Fix lanjutan: recovery reaktif saat upsert ditolak RLS (`isRlsError`). Cache lokal dari instalasi lama belum punya `meta.userId` sehingga reset proaktif tidak jalan; sekarang `syncAll` membersihkan cache sekali, set `meta.userId`, pull ulang, lalu flush (guard `recovered` per sesi). Tes 59 pass, QA 14/14.
 
+
+- Fix akar masalah: PK server global `id` -> komposit `(user_id, id)`. Import backup dari akun/perangkat lain mempertahankan id lama; dengan PK global itu menabrak baris milik akun lain -> RLS menolak, lalu recovery menghapus cache -> data import hilang. Sekarang id unik per pengguna; `flush` mengirim `user_id` eksplisit + `onConflict: 'user_id,id'`. Recovery reaktif dihapus (tidak lagi perlu, dan mencegah kehilangan data). Migrasi idempoten ditambahkan ke `supabase/schema.sql` (blok `do  ... `). Tes 58 pass, QA 14/14.
+

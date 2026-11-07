@@ -354,7 +354,7 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
 |---|---|
 
-| `id` | String unik dibuat aplikasi (UUID/random) |
+| `id` | String unik dibuat aplikasi (UUID/random). Di server id unik **per pengguna** (PK `user_id, id`), jadi backup dari akun lain boleh membawa id yang sama tanpa tabrakan |
 
 | `title` | Teks; opsional di formulir/Muse/import — bila kosong diturunkan otomatis (§8.4) |
 

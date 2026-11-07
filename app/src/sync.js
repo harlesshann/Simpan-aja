@@ -66,11 +66,6 @@ export function shouldResetLocal(prevUserId, nextUserId) {
   return Boolean(prevUserId && nextUserId && prevUserId !== nextUserId);
 }
 
-// Upsert ditolak RLS = id lokal sudah dipakai baris milik akun lain.
-export function isRlsError(e) {
-  return Boolean(e && (e.code === '42501' || /row-level security/i.test(e.message || '')));
-}
-
 // Baris lokal sudah tidak ada (hapus permanen) -> kirim tombstone.
 export function outboxPayload(store, entry, row) {
   if (!row) {
@@ -119,7 +114,6 @@ export async function initSync({ onStatus = () => {}, onRemoteChange = () => {} 
   let userId = null;
   let channel = null;
   let busy = false;
-  let recovered = false;
   let timer;
 
   const scoped = (base) => `${base}:${userId}`;
@@ -140,7 +134,11 @@ export async function initSync({ onStatus = () => {}, onRemoteChange = () => {} 
       const row = entry.store === 'collections'
         ? await getCollectionRow(entry.id)
         : await getBookmarkRow(entry.id);
-      const { error } = await client.from(entry.store).upsert(outboxPayload(entry.store, entry, row));
+      const payload = { ...outboxPayload(entry.store, entry, row), user_id: userId };
+      // PK per pengguna (user_id, id): id yang sama boleh ada di akun lain
+      // tanpa saling menabrak (mis. import backup dari akun/perangkat lain).
+      const { error } = await client.from(entry.store)
+        .upsert(payload, { onConflict: 'user_id,id' });
       if (error) throw error;
       await clearOutbox([entry.seq]);
     }
@@ -200,20 +198,7 @@ export async function initSync({ onStatus = () => {}, onRemoteChange = () => {} 
       await flush();
       await pullAll();
     } catch (e) {
-      // Upsert ditolak RLS = id lokal sudah dipakai baris milik akun lain
-      // (kemungkinan data akun lain nyangkut di cache). Bersihkan cache lokal,
-      // pull dari server, lalu push lagi. Ini satu kali per sesi.
-      if (isRlsError(e) && !recovered) {
-        recovered = true;
-        await clearLocalData();
-        await setMeta('userId', userId);
-        await onRemoteChange();
-        await pullAll();
-        // Setelah pull, flush ulang (outbox sudah kosong setelah clearLocalData).
-        await flush();
-      } else {
-        fail(e);
-      }
+      fail(e);
     } finally {
       busy = false;
       state.syncing = false;
@@ -258,7 +243,6 @@ export async function initSync({ onStatus = () => {}, onRemoteChange = () => {} 
     notify();
     if (!next) { unsubscribe(); return; }
     if (!switched) return; // token refresh: tidak perlu tarik ulang
-    recovered = false; // sesi baru: recovery boleh jalan sekali lagi
     try {
       // Akun berganti: cache lokal milik akun lama jangan ikut didorong ke
       // akun baru (id bisa menabrak baris milik user lain → RLS menolak).

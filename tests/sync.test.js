@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decide, toRemote, fromRemote, outboxPayload, shouldResetLocal, isRlsError, PULL_PAGE } from '../app/src/sync.js';
+import { decide, toRemote, fromRemote, outboxPayload, shouldResetLocal, PULL_PAGE } from '../app/src/sync.js';
 
 const bookmark = {
   id: 'b1', title: 'Video Remotion', type: 'video',
@@ -80,11 +80,4 @@ test('shouldResetLocal: reset hanya saat akun berganti', () => {
   assert.equal(shouldResetLocal('u1', 'u1'), false);   // login ulang akun sama
   assert.equal(shouldResetLocal('u1', 'u2'), true);    // akun berganti
   assert.equal(shouldResetLocal('u1', null), false);   // sign out
-});
-
-test('isRlsError: kenali penolakan RLS', () => {
-  assert.equal(isRlsError({ code: '42501', message: 'permission denied' }), true);
-  assert.equal(isRlsError({ message: 'new row violates row-level security policy (USING expression) for table "collections"' }), true);
-  assert.equal(isRlsError({ code: '23505', message: 'duplicate key value' }), false);
-  assert.equal(isRlsError(null), false);
 });

@@ -74,6 +74,8 @@ Tanpa login aplikasi tetap 100% lokal. Untuk menyamakan data HP & laptop:
 1. Buat project di [supabase.com](https://supabase.com) (free tier cukup untuk 1 akun).
 2. Buka **SQL Editor**, tempel isi `supabase/schema.sql`, jalankan sekali. Ini membuat
    tabel `bookmarks` + `collections`, RLS per-user, dan menyalakan Realtime.
+   Kalau project sudah pernah dibuat (tabel sudah ada), jalankan ulang file yang sama:
+   bagian migrasi di akhir mengubah primary key jadi `(user_id, id)` secara aman.
 3. **Authentication → Providers → Google**: aktifkan, isi Client ID/Secret dari
    Google Cloud Console. Tambahkan alamat aplikasi di **URL Configuration →
    Redirect URLs** (mis. `https://domain-anda.vercel.app/`) dan `http://localhost:8000/`.
