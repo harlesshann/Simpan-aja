@@ -2,7 +2,7 @@ import { TYPE_LABELS } from './constants.js';
 import { thumbnailFor, thumbLabel } from './thumbnail.js';
 import { posterDataUrl } from './poster.js';
 
-function el(tag, props = {}, children = []) {
+export function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
     if (v == null) continue;

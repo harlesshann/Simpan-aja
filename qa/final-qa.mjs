@@ -188,10 +188,10 @@ const copy = await evaluate(`(async()=>{
   const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
   const btnIn = (root, t)=>[...root.querySelectorAll('button')].find(b=>b.textContent===t);
   const read = async (title)=>{
-    cardBy(title).click(); await sleep(90);
-    btnIn(q('#detailDialog'),'Copy').click(); await sleep(140);
+    cardBy(title).click(); await sleep(120);
+    btnIn(q('#detailPage'),'Copy').click(); await sleep(140);
     const txt = await navigator.clipboard.readText();
-    q('#detailDialog .detail-close').click(); await sleep(60);
+    q('#detailPage .detail-back').click(); await sleep(140);
     return txt;
   };
   const cmd = await read('Konversi audio mp4');
@@ -203,31 +203,34 @@ check('5. Copy command & URL persis',
   copy.cmd === 'ffmpeg -i in.mp4 -vn -acodec libmp3lame out.mp3' &&
   copy.web === 'https://web.dev/learn/css/layout', JSON.stringify(copy));
 
-// ---------- Criterion 15: card click opens detail modal ----------
+// ---------- Criterion 15: card click opens detail page ----------
 const detail = await evaluate(`(async()=>{
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
   const q = (s)=>document.querySelector(s);
   const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
-  const d = q('#detailDialog');
+  const d = q('#detailPage');
   const c = cardBy('Orca video editor');
   const role = c.getAttribute('role'); const tab = c.tabIndex; const hasThumb = !!c.querySelector('.card-thumb');
-  c.click(); await sleep(90);
+  c.click(); await sleep(120);
   const out = {
     role, tab, hasThumb,
-    open: d.open,
+    open: !d.hidden,
+    layoutHidden: q('.layout').hidden,
+    hash: location.hash,
     title: d.querySelector('.detail-title')?.textContent,
     badge: d.querySelector('.badge')?.textContent,
     url: d.querySelector('.detail-url')?.textContent,
     thumb: !!d.querySelector('.detail-thumb .card-thumb'),
     actions: [...d.querySelectorAll('.detail-actions button, .detail-actions a')].map(e=>e.textContent),
   };
-  [...d.querySelectorAll('button')].find(b=>b.classList.contains('detail-close')).click(); await sleep(60);
-  out.closed = !d.open;
+  q('#detailPage .detail-back').click(); await sleep(140);
+  out.closed = d.hidden && !q('.layout').hidden && location.hash === '';
   return out;
 })()`);
 R.notes.detail = detail;
-check('15. klik kartu membuka detail lengkap (thumb, judul, sumber, aksi) lalu tutup ×',
-  detail.role === 'button' && detail.tab === 0 && detail.hasThumb && detail.open &&
+check('15. klik kartu membuka halaman detail lengkap (thumb, judul, sumber, aksi) lalu Kembali',
+  detail.role === 'button' && detail.tab === 0 && detail.hasThumb && detail.open && detail.layoutHidden &&
+  detail.hash.startsWith('#/item/') &&
   detail.title === 'Orca video editor' && detail.badge === 'Repo GitHub' &&
   detail.url === 'https://github.com/stablyai/orca' && detail.thumb &&
   detail.actions.includes('Buka') && detail.actions.includes('Copy') &&
@@ -265,32 +268,34 @@ check('6. hapus Koleksi tidak menghapus bookmark',
 await evaluate(`document.querySelector('[data-collection="all"]').click()`);
 await sleep(80);
 
-// ---------- Criterion 7: detail tanpa tombol Preview; tutup berupa ikon × ----------
+// ---------- Criterion 7: detail adalah halaman penuh (bukan modal), tanpa Preview ----------
 const detailClose = await evaluate(`(async()=>{
   const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
   const q = (s)=>document.querySelector(s);
   const cardBy = (t)=>[...document.querySelectorAll('.card')].find(c=>c.querySelector('.card-title')?.textContent===t);
   const out = {};
 
-  cardBy('Belajar easing dasar').click(); await sleep(90);
-  out.detailOpen = q('#detailDialog').open;
-  const labels = [...q('#detailDialog').querySelectorAll('button')].map(b=>b.textContent.trim());
+  cardBy('Belajar easing dasar').click(); await sleep(120);
+  out.pageVisible = !q('#detailPage').hidden;
+  out.layoutHidden = q('.layout').hidden;
+  out.noDialog = !document.querySelector('dialog[open]');
+  const labels = [...q('#detailPage').querySelectorAll('button')].map(b=>b.textContent.trim());
   out.noPreview = !labels.includes('Preview');
-  out.noTutupText = !labels.includes('Tutup');
-  const x = q('#detailDialog .detail-close');
-  out.hasX = !!x && x.textContent.trim() === '\\u00d7' && x.getAttribute('aria-label') === 'Tutup detail';
-  x?.click(); await sleep(80);
-  out.closed = !q('#detailDialog').open;
+  out.hasBack = labels.includes('\\u2190 Kembali');
+  q('#detailPage .detail-back').click(); await sleep(140);
+  out.backHidden = q('#detailPage').hidden && !q('.layout').hidden && location.hash === '';
 
-  cardBy('Teknik color grading').click(); await sleep(80);
-  q('#detailDialog .detail-close')?.click(); await sleep(80);
-  out.closed2 = !q('#detailDialog').open;
+  cardBy('Teknik color grading').click(); await sleep(120);
+  out.hash2 = location.hash;
+  history.back(); await sleep(220);
+  out.popBack = q('#detailPage').hidden && !q('.layout').hidden && location.hash === '';
   return out;
 })()`);
-R.notes.detailClose = detailClose;
-check('7. detail tanpa Preview; tombol tutup ikon × menutup modal',
-  detailClose.detailOpen && detailClose.noPreview && detailClose.noTutupText &&
-  detailClose.hasX && detailClose.closed && detailClose.closed2, JSON.stringify(detailClose));
+R.notes.detailPage = detailClose;
+check('7. detail jadi halaman penuh (route #/item/), tanpa Preview, Kembali/back menutup',
+  detailClose.pageVisible && detailClose.layoutHidden && detailClose.noDialog &&
+  detailClose.noPreview && detailClose.hasBack && detailClose.backHidden &&
+  detailClose.hash2.startsWith('#/item/') && detailClose.popBack, JSON.stringify(detailClose));
 
 // ---------- Criterion 10: duplicate warning ----------
 const dupe = await evaluate(`(async()=>{

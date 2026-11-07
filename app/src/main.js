@@ -4,7 +4,7 @@ import { filterBookmarks } from './search.js';
 import { createCardEl, renderCollectionFilter } from './render.js';
 import { openBookmarkForm, openCollectionManager } from './form.js';
 import { newId } from './id.js';
-import { openDetail } from './detail.js';
+import { renderDetailPage, renderDetailNotFound } from './detail.js';
 import {
   listBookmarks, listCollections, putBookmark, deleteBookmark, putCollection, deleteCollectionAndDetach,
 } from './db.js';
@@ -24,6 +24,8 @@ const els = {
   collections: document.getElementById('collectionList'),
   importFile: document.getElementById('importFile'),
   toast: document.getElementById('toast'),
+  layout: document.querySelector('.layout'),
+  detailPage: document.getElementById('detailPage'),
 };
 
 const state = { query: '', type: 'all', collection: 'all' };
@@ -93,16 +95,68 @@ function handlers() {
       if (!window.confirm(`Hapus "${b.title || b.url || b.command}"?`)) return false;
       await deleteBookmark(b.id);
       await render();
+      if (itemIdFromHash()) closeItem(); else route();
       toast('Item dihapus.');
       return true;
     },
-    onDetail: (b) => openDetail({
-      bookmark: b,
-      collectionName: collectionName(b.collectionId),
-      sourceLabel: b.type === 'command' ? '' : sourceLabel(b.url),
-      handlers: handlers(),
-    }),
+    onDetail: (b) => openItem(b.id),
   };
+}
+
+/* ----------------------------------------------------------------
+   Route halaman detail: #/item/<id>. Grid dan halaman detail saling
+   gantian tampil; tombol back browser tetap bekerja lewat popstate.
+---------------------------------------------------------------- */
+
+const ITEM_HASH = '#/item/';
+
+function itemIdFromHash() {
+  const h = location.hash;
+  if (!h.startsWith(ITEM_HASH)) return '';
+  try { return decodeURIComponent(h.slice(ITEM_HASH.length)); } catch { return ''; }
+}
+
+function openItem(id) {
+  history.pushState({ item: id }, '', ITEM_HASH + encodeURIComponent(id));
+  route();
+}
+
+function closeItem() {
+  history.replaceState(null, '', location.pathname + location.search);
+  route();
+}
+
+function backHome() {
+  if (history.state && history.state.item) history.back();
+  else closeItem();
+}
+
+function route() {
+  const id = itemIdFromHash();
+  if (!id) {
+    els.detailPage.hidden = true;
+    els.detailPage.replaceChildren();
+    els.layout.hidden = false;
+    document.title = 'SimpanAja';
+    return;
+  }
+
+  els.layout.hidden = true;
+  const b = bookmarks.find((x) => x.id === id);
+  if (!b) {
+    renderDetailNotFound(els.detailPage, { onBack: backHome });
+    document.title = 'Tidak ditemukan — SimpanAja';
+    return;
+  }
+
+  renderDetailPage(els.detailPage, {
+    bookmark: b,
+    collectionName: collectionName(b.collectionId),
+    sourceLabel: b.type === 'command' ? '' : sourceLabel(b.url),
+    handlers: { ...handlers(), onBack: backHome },
+  });
+  document.title = (b.title || 'Detail') + ' — SimpanAja';
+  window.scrollTo(0, 0);
 }
 
 async function render() {
@@ -158,6 +212,7 @@ function openEdit(b) {
       await resolveNewCollection(next);
       await putBookmark(next);
       await render();
+      if (itemIdFromHash()) route();
       toast('Perubahan disimpan.');
     },
   });
@@ -243,6 +298,14 @@ function wire() {
       onChange: () => render(),
     });
   };
+
+  window.addEventListener('popstate', route);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !itemIdFromHash()) return;
+    if (document.querySelector('dialog[open]')) return;
+    e.preventDefault();
+    backHome();
+  });
 }
 
 const ADD_ERRORS = {
@@ -267,4 +330,5 @@ function handleAddFragment() {
 
 wire();
 await render();
+route();
 handleAddFragment();

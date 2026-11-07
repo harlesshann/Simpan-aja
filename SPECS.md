@@ -152,7 +152,7 @@ Susunan halaman (atas ke bawah):
 
 6. \*\*Kelola Koleksi:\*\* sebuah area/tombol untuk membuat, me-rename, dan menghapus Koleksi (lihat §7.6).
 
-Isi satu kartu (ringkas — detail lengkap ada di modal detail saat kartu diklik):
+Isi satu kartu (ringkas — detail lengkap ada di halaman detail saat kartu diklik):
 
 - \*\*Thumbnail\*\* rasio 16:9 di bagian atas: **gambar kustom dari user** (opsional, file lokal yang dikompres ke 16:9 dan disimpan sebagai data URL — tanpa unggah jaringan) bila ada; selain itu thumbnail asli YouTube bila video YouTube; favicon situs untuk tipe berbasis link lain; \*\*poster lokal otomatis\*\* (mirip tangkapan layar: bar chrome palsu + hostname + nama platform + judul, dibuat dari URL/judul secara lokal dan deterministik) untuk TikTok/Instagram/Threads; tile lokal berwarna sesuai tipe (inisial label) untuk Command dan fallback saat gambar gagal dimuat. Placeholder huruf awal tampil sampai gambar termuat. Poster bukan tangkapan halaman asli — konten TikTok/IG/Threads tidak bisa diambil browser (CORS, login wall).
 
@@ -168,7 +168,7 @@ Isi satu kartu (ringkas — detail lengkap ada di modal detail saat kartu diklik
 
 - Khusus Command: cuplikan command (monospace, terpotong).
 
-Kartu itu sendiri adalah tombol (dapat difokus keyboard, `Enter`/`Space`): mengklik kartu membuka \*\*modal detail\*\* di tengah layar. Modal detail memuat thumbnail besar, lencana, judul, sumber, URL/command lengkap, Koleksi, catatan penuh, tanggal, dan semua aksi:
+Kartu itu sendiri adalah tombol (dapat difokus keyboard, `Enter`/`Space`): mengklik kartu membuka \*\*halaman detail\*\* (route dalam aplikasi `#/item/<id>`, bukan modal). Di halaman itu grid disembunyikan dan isi detail ditampilkan penuh-lebar. Halaman detail memuat tombol `← Kembali` di atas, thumbnail besar, lencana, judul, sumber, URL/command lengkap, Koleksi, catatan penuh, tanggal, dan semua aksi:
 
   - `Buka` (tipe berbasis link; membuka tab baru dengan `rel="noopener"`)
 
@@ -180,7 +180,7 @@ Kartu itu sendiri adalah tombol (dapat difokus keyboard, `Enter`/`Space`): mengk
 
   - `Tutup` (ikon × di pojok kanan atas)
 
-Tidak ada tombol aksi di kartu grid dan tidak ada hover-preview; semua aksi lewat modal detail. Tujuan: grid rapi dan visual, satu pola interaksi di HP & desktop.
+Tidak ada tombol aksi di kartu grid dan tidak ada hover-preview; semua aksi lewat halaman detail. Tujuan: grid rapi dan visual, satu pola interaksi di HP & desktop. Halaman detail dibuka lewat route hash di halaman yang sama (tanpa muat ulang, tombol back/forward browser tetap bekerja); `Esc` dan tombol `← Kembali` menutupnya.
 
 Keadaan kosong yang harus ditangani dengan pesan berbahasa Indonesia:
 
@@ -433,7 +433,7 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
 6. Menghapus Koleksi tidak menghapus bookmark-nya; itemnya tampil di "Belum Dikoleksi".
 
-7. Menekan kartu Video membuka modal detail tanpa tombol `Preview`; modal ditutup lewat ikon × di pojok kanan atas, `Esc`, atau klik backdrop. Tidak ada hover-preview dan tidak ada embed yang dimuat.
+7. Menekan kartu Video membuka halaman detail (route `#/item/<id>`) tanpa tombol `Preview`; halaman ditutup lewat tombol `← Kembali` atau tombol back browser. Tidak ada hover-preview dan tidak ada embed yang dimuat.
 
 8. Link 1-tap Muse yang valid membuka formulir terisi (termasuk usulan Koleksi baru), fragment dibersihkan dari URL, dan item \*\*belum\*\* tersimpan sebelum `Simpan` ditekan. Link dengan payload rusak menampilkan pesan kesalahan dan formulir kosong.
 
@@ -449,7 +449,7 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 
 14. Link 1-tap dengan payload JSON lebih dari 2.000 karakter ditolak dengan pesan kesalahan yang mengarahkan ke import JSON.
 
-15. Mengklik kartu membuka modal detail terpusat yang memuat thumbnail, lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan semua aksi (`Buka`/`Copy`/`Edit`/`Hapus`) plus tombol tutup ikon × di pojok kanan atas; `Esc` dan klik backdrop juga menutup modal tanpa perubahan data.
+15. Mengklik kartu membuka halaman detail penuh (route `#/item/<id>`, grid disembunyikan) yang memuat tombol `← Kembali`, thumbnail, lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan semua aksi (`Buka`/`Copy`/`Edit`/`Hapus`); `← Kembali`, `Esc`, dan tombol back browser menutup halaman tanpa perubahan data.
 
 ## 11. Yang Diserahkan ke Builder (tahap rencana yang memutuskan)
 
@@ -459,7 +459,7 @@ Spec ini sengaja \*\*tidak\*\* menentukan, dan rencana implementasi yang memutus
 
 - Skema visual persis (palet warna per tipe, ikon, tipografi), selama lencana tipe mudah dibedakan sekilas dan tampilannya tidak generik.
 
-- Bentuk persis modal/panel formulir, dialog konfirmasi, dan daftar Koleksi di HP.
+- Bentuk persis modal/panel formulir, dialog konfirmasi, dan daftar Koleksi di HP; halaman detail dirender sebagai route dalam satu halaman (bukan file HTML terpisah).
 
 - Mekanisme persis IndexedDB (pustaka atau vanilla) dan strategi pengujian/verifikasinya.
 

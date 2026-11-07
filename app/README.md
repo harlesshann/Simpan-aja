@@ -43,9 +43,11 @@ membuat HP memakai JS lama dari cache.
   tanpa jaringan), dan tile lokal berwarna sesuai tipe untuk Command atau bila gambar
   gagal dimuat. Kartu bisa
   diklik (atau `Enter`/`Space` saat difokus) untuk membuka **detail**.
-- **Detail (modal):** thumbnail besar, lencana tipe, judul, sumber, URL/command,
-  Koleksi, catatan, tanggal, dan aksi `Buka`, `Copy`, `Edit`, `Hapus`. Tutup lewat
-  ikon **×** di pojok kanan atas, `Esc`, atau klik di luar modal.
+- **Detail (halaman penuh):** kartu yang diklik membuka halaman detail lewat route
+  `#/item/<id>` — grid disembunyikan, isi detail tampil penuh-lebar: thumbnail besar,
+  lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan aksi `Buka`,
+  `Copy`, `Edit`, `Hapus`. Tutup lewat tombol `← Kembali`, `Esc`, atau tombol back
+  browser. Satu halaman yang sama (tanpa muat ulang, tanpa file HTML terpisah).
 
 ## Backup: Export & Import
 

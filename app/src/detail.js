@@ -1,21 +1,19 @@
 import { TYPE_LABELS } from './constants.js';
 import { createThumbEl } from './render.js';
 
-const dialog = document.getElementById('detailDialog');
-let lastFocus = null;
-
-function el(tag, props = {}, children = []) {
+const el = (tag, props = {}, children = []) => {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
     if (v == null) continue;
     if (k === 'class') node.className = v;
     else if (k === 'text') node.textContent = v;
     else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+    else if (v === true) node.setAttribute(k, '');
     else node.setAttribute(k, v);
   }
   for (const c of [].concat(children)) if (c) node.append(c);
   return node;
-}
+};
 
 const fmtDateTime = (iso) => {
   const d = new Date(iso);
@@ -24,11 +22,16 @@ const fmtDateTime = (iso) => {
     : d.toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-// Detail modal terpusat untuk satu bookmark. Semua aksi kartu hidup di sini.
-export function openDetail({ bookmark: b, collectionName = '', sourceLabel = '', handlers = {} }) {
-  closeDetail();
-  lastFocus = document.activeElement;
+const topBar = (handlers) => el('div', { class: 'detail-top' }, [
+  el('button', {
+    class: 'btn detail-back', type: 'button', text: '\u2190 Kembali',
+    onclick: () => handlers.onBack && handlers.onBack(),
+  }),
+  el('span', { class: 'detail-top-label', text: 'Detail bookmark' }),
+]);
 
+// Halaman detail penuh (bukan modal), dirender ke #detailPage saat route #/item/<id>.
+export function renderDetailPage(container, { bookmark: b, collectionName = '', sourceLabel = '', handlers = {} }) {
   const body = el('div', { class: 'detail-body' }, [
     el('div', { class: 'detail-thumb' }, [createThumbEl(b, sourceLabel)]),
     el('div', { class: 'detail-head' }, [
@@ -40,7 +43,7 @@ export function openDetail({ bookmark: b, collectionName = '', sourceLabel = '',
   const meta = [];
   if (sourceLabel) meta.push(sourceLabel);
   if (collectionName) meta.push(collectionName);
-  if (meta.length) body.append(el('p', { class: 'detail-meta', text: meta.join(' · ') }));
+  if (meta.length) body.append(el('p', { class: 'detail-meta', text: meta.join(' \u00b7 ') }));
 
   if (b.type === 'command') {
     body.append(el('pre', { class: 'detail-command', text: b.command || '' }));
@@ -60,28 +63,22 @@ export function openDetail({ bookmark: b, collectionName = '', sourceLabel = '',
   }
   actions.append(el('button', {
     class: 'btn', type: 'button', text: 'Edit',
-    onclick: () => { closeDetail(); handlers.onEdit && handlers.onEdit(b); },
+    onclick: () => handlers.onEdit && handlers.onEdit(b),
   }));
   actions.append(el('button', {
     class: 'btn btn-danger', type: 'button', text: 'Hapus',
-    onclick: async () => { const deleted = await handlers.onDelete?.(b); if (deleted) closeDetail(); },
+    onclick: () => handlers.onDelete && handlers.onDelete(b),
   }));
   body.append(actions);
 
-  const closeBtn = el('button', {
-    class: 'detail-close', type: 'button', 'aria-label': 'Tutup detail', text: '\u00d7', onclick: closeDetail,
-  });
-
-  dialog.replaceChildren(closeBtn, body);
-  dialog.showModal();
-  return dialog;
+  container.replaceChildren(topBar(handlers), body);
+  container.hidden = false;
 }
 
-export function closeDetail() {
-  if (dialog.open) dialog.close();
-  if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
-  lastFocus = null;
+export function renderDetailNotFound(container, handlers = {}) {
+  container.replaceChildren(
+    topBar(handlers),
+    el('p', { class: 'detail-missing', text: 'Bookmark tidak ditemukan. Mungkin sudah dihapus.' }),
+  );
+  container.hidden = false;
 }
-
-// Klik backdrop menutup; Esc sudah ditangani <dialog> secara native.
-dialog.addEventListener('click', (e) => { if (e.target === dialog) closeDetail(); });

@@ -194,3 +194,13 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Modal detail kini tanpa tombol `Preview` dan `Tutup` teks; ditutup lewat ikon × (`.detail-close`, `aria-label` 'Tutup detail') di pojok kanan atas, tetap plus `Esc` dan klik backdrop.
 - SPECS §7.5/§10/§12 dan README disesuaikan (preview dihapus); jaringan kini hanya untuk link yang diklik + thumbnail.
 - Tes: 50 pass, 0 fail. QA `qa/final-qa.mjs` 14/14 (kriteria 7 & 15 diperbarui); `qa/manual-image.mjs` 5/5. Bukti visual: `qa/manual-detail.png`.
+
+## Detail jadi halaman penuh (route #/item/<id>)
+
+- Modal detail diganti halaman penuh dalam satu halaman (SPA hash route #/item/<id>), bukan file HTML terpisah dan tanpa dependency baru. Grid (`.layout`) disembunyikan saat detail tampil; tombol back/forward browser bekerja lewat `popstate`.
+- `app/src/detail.js`: `renderDetailPage(container, {...})` dan `renderDetailNotFound(container, handlers)` menggantikan `openDetail` modal; tombol `? Kembali` (`.detail-back`) + label `.detail-top-label` di atas.
+- `app/index.html`: `<dialog id="detailDialog">` diganti `<section id="detailPage" class="detail-page" hidden>`. `app/styles.css`: gaya dialog/close/backdrop diganti `.detail-page`/`.detail-top`/`.detail-back`/`.detail-top-label`/`.detail-missing`.
+- `app/src/main.js`: routing hash (`ITEM_HASH`, `itemIdFromHash`, `openItem`/`closeItem`/`backHome`/`route`), listener `popstate` + `Escape` (lewati saat dialog lain terbuka); `onDetail` membuka route, edit-save re-render route, delete menutup route.
+- `app/src/render.js`: helper `el` diexport.
+- QA `qa/final-qa.mjs` kriteria 7 & 15 dan `qa/manual-image.mjs` disesuaikan ke `#detailPage`/`.detail-back` + cek route/hash.
+- Tes: 50 pass, 0 fail. QA `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5. Bukti visual: `qa/manual-detail.png` (halaman detail).
