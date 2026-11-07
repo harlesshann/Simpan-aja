@@ -1,4 +1,4 @@
-import { TYPE_LABELS } from './constants.js';
+import { TYPE_LABELS, safeCollectionColor } from './constants.js';
 import { thumbnailFor, thumbLabel } from './thumbnail.js';
 import { posterDataUrl } from './poster.js';
 
@@ -91,17 +91,18 @@ export function renderCollectionFilter(container, collections, counts, selected)
   total += counts.get('none') || 0;
 
   const rows = [
-    { key: 'all', name: 'Semua Koleksi', count: total },
-    { key: 'none', name: 'Belum Dikoleksi', count: counts.get('none') || 0 },
-    ...collections.map((c) => ({ key: c.id, name: c.name, count: counts.get(c.id) || 0 })),
+    { key: 'all', name: 'Semua Koleksi', count: total, color: 'var(--ink)', cls: 'is-all' },
+    { key: 'none', name: 'Belum Dikoleksi', count: counts.get('none') || 0, color: 'var(--surface-2)', cls: 'is-none' },
+    ...collections.map((c) => ({ key: c.id, name: c.name, count: counts.get(c.id) || 0, color: safeCollectionColor(c.color), cls: '' })),
   ];
 
   for (const r of rows) {
     container.append(el('button', {
-      class: 'collection-item', type: 'button',
+      class: 'collection-item' + (r.cls ? ' ' + r.cls : ''), type: 'button',
       'data-collection': r.key, 'aria-current': String(selected === r.key),
+      style: '--folder:' + r.color,
     }, [
-      el('span', { text: r.name }),
+      el('span', { class: 'collection-name', text: r.name }),
       el('span', { class: 'count', text: String(r.count) }),
     ]));
   }

@@ -146,7 +146,7 @@ Susunan halaman (atas ke bawah):
 
 3. \*\*Filter tipe:\*\* chip `Semua | Video | Website | Command | Repo GitHub | Extension | Lainnya`.
 
-4. \*\*Filter Koleksi:\*\* daftar Koleksi (di desktop tampil sebagai daftar/sidebar; di HP tampil ringkas, mis. chip yang bisa di-scroll mendatar atau dropdown — bentuk persisnya builder yang menentukan selama tetap satu halaman dan nyaman di 390px) termasuk pilihan `Semua Koleksi` dan `Belum Dikoleksi`.
+4. \*\*Filter Koleksi:\*\* daftar Koleksi berbentuk \*\*folder\*\* berwarna (di desktop tampil sebagai daftar/sidebar; di HP tampil ringkas, mis. chip folder yang bisa di-scroll mendatar atau dropdown — bentuk persisnya builder yang menentukan selama tetap satu halaman dan nyaman di 390px) termasuk pilihan `Semua Koleksi` dan `Belum Dikoleksi`.
 
 5. \*\*Grid kartu\*\* bookmark (responsif: 1 kolom di HP, beberapa kolom di desktop).
 
@@ -204,7 +204,9 @@ Fitur preview popup (iframe/video embed + fallback `Tonton di Sumbernya`) besert
 
 ### 7.6 Kelola Koleksi \*\*\[Handy\]\*\*
 
-- Operasi: buat Koleksi baru (nama wajib, unik tanpa memandang huruf besar/kecil), ganti nama, hapus.
+- Operasi: buat Koleksi baru (nama wajib, unik tanpa memandang huruf besar/kecil), ganti nama, **atur warna**, hapus.
+
+- **Warna Koleksi:** setiap Koleksi punya warna dari palet tetap (bukan input bebas). Warna dipilih saat membuat Koleksi baru maupun diubah pada Koleksi yang sudah ada. Di daftar filter Koleksi, item dirender sebagai **bentuk folder** dengan warna itu, sehingga Koleksi mudah dibedakan sekilas. Koleksi lama tanpa warna memakai warna default.
 
 - Menghapus Koleksi \*\*tidak\*\* menghapus bookmark di dalamnya; item-itemnya menjadi "Belum Dikoleksi" (`collectionId` dikosongkan).
 
@@ -364,6 +366,8 @@ Keputusan arsitektur: website tetap \*\*mandiri\*\*; Muse (Harless) berperan seb
 
 | `createdAt` | Timestamp ISO 8601 |
 
+| `color` | Opsional; hex `#rrggbb` dari palet tetap. Bila kosong/tidak valid → warna default. Ikut pada export/import JSON. |
+
 ### 8.3 Aturan tebak tipe dari domain \*\*\[Handy — ditebak otomatis; tabel: Usulan Harless\]\*\*
 
 Tebakan bersifat saran yang dapat diganti pengguna:
@@ -450,6 +454,8 @@ Aplikasi dianggap memenuhi spec ini bila skenario berikut lulus:
 14. Link 1-tap dengan payload JSON lebih dari 2.000 karakter ditolak dengan pesan kesalahan yang mengarahkan ke import JSON.
 
 15. Mengklik kartu membuka halaman detail penuh (route `#/item/<id>`, grid disembunyikan) yang memuat tombol `← Kembali`, thumbnail, lencana tipe, judul, sumber, URL/command, Koleksi, catatan, tanggal, dan semua aksi (`Buka`/`Copy`/`Edit`/`Hapus`); `← Kembali`, `Esc`, dan tombol back browser menutup halaman tanpa perubahan data.
+
+16. Koleksi tampil sebagai folder berwarna di daftar filter; warna bisa dipilih saat membuat Koleksi dan diubah dari dialog Kelola Koleksi; warna ikut pada export/import JSON, dan warna kosong/tidak valid jatuh ke warna default.
 
 ## 11. Yang Diserahkan ke Builder (tahap rencana yang memutuskan)
 

@@ -1,4 +1,4 @@
-import { TYPES } from './constants.js';
+import { TYPES, DEFAULT_COLLECTION_COLOR, isCollectionColor } from './constants.js';
 import { normalizeUrl, isValidHttpUrl, deriveTitle } from './detect.js';
 import { newId } from './id.js';
 
@@ -29,7 +29,11 @@ export function buildExport({ bookmarks, collections }, now = new Date()) {
       app: 'SimpanAja',
       version: 1,
       exportedAt: now.toISOString(),
-      collections: collections.map((c) => ({ id: c.id, name: c.name, createdAt: c.createdAt })),
+      collections: collections.map((c) => ({
+        id: c.id, name: c.name,
+        color: isCollectionColor(c.color) ? c.color.toLowerCase() : DEFAULT_COLLECTION_COLOR,
+        createdAt: c.createdAt,
+      })),
       bookmarks: bookmarks.map((b) => ({
         id: b.id, title: b.title, type: b.type,
         url: b.url ?? null, command: b.command ?? null,
@@ -99,6 +103,7 @@ export function planImport(text, existing, makeId = newId) {
       match = {
         id,
         name: c.name.trim(),
+        color: isCollectionColor(c.color) ? c.color.toLowerCase() : DEFAULT_COLLECTION_COLOR,
         createdAt: typeof c.createdAt === 'string' ? c.createdAt : new Date().toISOString(),
       };
       usedCollectionIds.add(id);

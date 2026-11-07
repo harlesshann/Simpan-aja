@@ -1,4 +1,4 @@
-import { TYPES, TYPE_LABELS } from './constants.js';
+import { TYPES, TYPE_LABELS, DEFAULT_COLLECTION_COLOR, safeCollectionColor } from './constants.js';
 import { sourceLabel } from './detect.js';
 import { filterBookmarks } from './search.js';
 import { createCardEl, renderCollectionFilter } from './render.js';
@@ -224,7 +224,7 @@ async function resolveNewCollection(b) {
   delete b.newCollectionName;
   let c = collections.find((x) => x.name.toLowerCase() === name.toLowerCase());
   if (!c) {
-    c = { id: newId(), name, createdAt: new Date().toISOString() };
+    c = { id: newId(), name, color: DEFAULT_COLLECTION_COLOR, createdAt: new Date().toISOString() };
     await putCollection(c);
     collections.push(c);
   }
@@ -292,8 +292,9 @@ function wire() {
     for (const b of bookmarks) counts.set(b.collectionId ?? 'none', (counts.get(b.collectionId ?? 'none') || 0) + 1);
     openCollectionManager({
       collections, counts,
-      onCreate: async (name) => { await putCollection({ id: newId(), name, createdAt: new Date().toISOString() }); },
+      onCreate: async (name, color) => { await putCollection({ id: newId(), name, color: safeCollectionColor(color), createdAt: new Date().toISOString() }); },
       onRename: async (id, name) => { const c = collections.find((x) => x.id === id); await putCollection({ ...c, name }); },
+      onColorChange: async (id, color) => { const c = collections.find((x) => x.id === id); await putCollection({ ...c, color: safeCollectionColor(color) }); },
       onDelete: async (id) => { await deleteCollectionAndDetach(id); },
       onChange: () => render(),
     });

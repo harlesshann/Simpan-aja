@@ -35,8 +35,10 @@ membuat HP memakai JS lama dari cache.
 - **Search:** mencari di judul, catatan, URL, isi command, dan nama Koleksi.
   Semua kata harus cocok (AND).
 - **Filter:** chip tipe + filter Koleksi (termasuk `Belum Dikoleksi`).
-- **Koleksi:** buat/rename/hapus lewat tombol `Kelola`. Menghapus Koleksi
-  **tidak** menghapus bookmark-nya; itemnya pindah ke `Belum Dikoleksi`.
+- **Koleksi:** buat/rename/**atur warna**/hapus lewat tombol `Kelola`. Di daftar
+  filter, tiap Koleksi tampil sebagai **folder berwarna** (warna dipilih dari palet
+  saat membuat atau mengubah Koleksi). Menghapus Koleksi **tidak** menghapus
+  bookmark-nya; itemnya pindah ke `Belum Dikoleksi`.
 - **Kartu:** tiap kartu menampilkan **thumbnail konten** — thumbnail asli YouTube
   untuk video YouTube, favicon situs untuk link lain, **poster lokal otomatis** untuk
   TikTok/Instagram/Threads (bar chrome palsu + nama platform + judul, dibuat lokal

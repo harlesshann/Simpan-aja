@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildExport, planImport, duplicateKey, validImageDataUrl } from '../app/src/backup.js';
+import { DEFAULT_COLLECTION_COLOR } from '../app/src/constants.js';
 
 const state = {
   collections: [{ id: 'c1', name: 'Motion Design', createdAt: '2026-10-01T00:00:00.000Z' }],
@@ -126,4 +127,19 @@ test('export/import membawa gambar kustom dan membuang yang tidak valid', () => 
   const r2 = planImport(JSON.stringify(data), { bookmarks: [], collections: [] }, idGen);
   assert.equal(r2.ok, true);
   assert.equal(r2.addBookmarks[0].image, null);
+});
+
+test('export/import membawa warna Koleksi; warna rusak jatuh ke default', () => {
+  const withColor = {
+    collections: [{ id: 'c1', name: 'Motion Design', color: '#7AA7FF', createdAt: '2026-10-01T00:00:00.000Z' }],
+    bookmarks: [],
+  };
+  const { data } = buildExport(withColor, new Date());
+  assert.equal(data.collections[0].color, '#7aa7ff');
+  const r = planImport(JSON.stringify(data), { bookmarks: [], collections: [] }, idGen);
+  assert.equal(r.addCollections[0].color, '#7aa7ff');
+
+  data.collections[0].color = 'javascript:alert(1)';
+  const r2 = planImport(JSON.stringify(data), { bookmarks: [], collections: [] }, idGen);
+  assert.equal(r2.addCollections[0].color, DEFAULT_COLLECTION_COLOR);
 });

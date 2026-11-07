@@ -204,3 +204,11 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - `app/src/render.js`: helper `el` diexport.
 - QA `qa/final-qa.mjs` kriteria 7 & 15 dan `qa/manual-image.mjs` disesuaikan ke `#detailPage`/`.detail-back` + cek route/hash.
 - Tes: 50 pass, 0 fail. QA `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5. Bukti visual: `qa/manual-detail.png` (halaman detail).
+
+## Koleksi jadi folder berwarna + atur warna
+
+- Daftar filter Koleksi kini dirender sebagai bentuk folder: badan berwarna + tab folder di atas; `Semua Koleksi` folder hitam (teks aksen), `Belum Dikoleksi` abu; item terpilih naik (shadow lebih tebal). (`app/src/render.js`, `app/styles.css`).
+- Warna disimpan di field `color` Koleksi dari palet tetap (`COLLECTION_COLORS` + `DEFAULT_COLLECTION_COLOR` + `isCollectionColor`/`safeCollectionColor` di `app/src/constants.js`). Tanpa input bebas ? nilai tetap aman untuk CSS.
+- Dialog Kelola Koleksi: swatch warna per Koleksi (ubah langsung) + pemilih warna untuk Koleksi baru; `onCreate(name, color)` dan `onColorChange(id, color)` di `app/src/form.js` + wiring `app/src/main.js`. esolveNewCollection memberi warna default.
+- Backup: export/import membawa `color`; nilai rusak/kosong jatuh ke default (`app/src/backup.js`). Koleksi lama tanpa warna otomatis default.
+- Tes: 51 pass, 0 fail (tes baru untuk round-trip warna Koleksi). QA `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5. Bukti visual: `qa/collections-sidebar.png`, `qa/collections-manage.png`, `qa/collections-mobile.png`.

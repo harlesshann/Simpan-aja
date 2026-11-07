@@ -1,4 +1,4 @@
-import { TYPES, TYPE_LABELS } from './constants.js';
+import { TYPES, TYPE_LABELS, COLLECTION_COLORS, DEFAULT_COLLECTION_COLOR, safeCollectionColor } from './constants.js';
 import { detectType, deriveTitle } from './detect.js';
 import { findDuplicate } from './backup.js';
 import { newId } from './id.js';
@@ -248,10 +248,29 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 }
 
 // Kelola Koleksi (Task 9). Store mutations are injected so db.js stays swappable.
-export function openCollectionManager({ collections, counts, onCreate, onRename, onDelete, onChange }) {
+
+// Deretan swatch warna. Nilai tetap dari palet (bukan teks pengguna).
+function colorPicker(initial, onPick) {
+  let selected = safeCollectionColor(initial);
+  const btns = COLLECTION_COLORS.map((color) => el('button', {
+    class: 'color-swatch', type: 'button', 'data-color': color,
+    'aria-label': 'Warna ' + color, title: color,
+    'aria-pressed': String(color === selected), style: '--sw:' + color,
+    onclick: () => {
+      selected = color;
+      for (const b of btns) b.setAttribute('aria-pressed', String(b.dataset.color === selected));
+      onPick(color);
+    },
+  }));
+  const wrap = el('div', { class: 'color-picker', role: 'group', 'aria-label': 'Warna Koleksi' }, btns);
+  return { el: wrap, get value() { return selected; } };
+}
+
+export function openCollectionManager({ collections, counts, onCreate, onRename, onColorChange, onDelete, onChange }) {
   const dlg = document.getElementById('collectionsDialog');
   const list = document.getElementById('collectionManagerList');
   const nameInput = document.getElementById('newCollectionName');
+  const newColorHost = document.getElementById('newCollectionColor');
   const err = document.getElementById('collectionError');
   const showErr = (m) => { err.textContent = m; err.hidden = !m; };
 
@@ -275,6 +294,11 @@ export function openCollectionManager({ collections, counts, onCreate, onRename,
         onChange();
         draw();
       };
+      const picker = colorPicker(c.color, (color) => {
+        onColorChange && onColorChange(c.id, color);
+        onChange();
+        draw();
+      });
       list.append(el('div', { class: 'manage-row' }, [
         input,
         el('span', { class: 'count', text: `${counts?.get(c.id) || 0} item` }),
@@ -288,9 +312,13 @@ export function openCollectionManager({ collections, counts, onCreate, onRename,
             draw();
           },
         }),
+        picker.el,
       ]));
     }
   }
+
+  const newPicker = colorPicker(DEFAULT_COLLECTION_COLOR, () => {});
+  newColorHost.replaceChildren(newPicker.el);
 
   document.getElementById('btnCreateCollection').onclick = () => {
     const name = nameInput.value.trim();
@@ -298,7 +326,7 @@ export function openCollectionManager({ collections, counts, onCreate, onRename,
     if (nameTaken(name)) return showErr('Nama Koleksi sudah dipakai.');
     showErr('');
     nameInput.value = '';
-    onCreate(name);
+    onCreate(name, newPicker.value);
     onChange();
   };
 
