@@ -26,10 +26,74 @@ const fTitle = document.getElementById('fTitle');
 const fNote = document.getElementById('fNote');
 const fCollection = document.getElementById('fCollection');
 const fNewCollection = document.getElementById('fNewCollection');
+const fImage = document.getElementById('fImage');
+const fImagePreview = document.getElementById('fImagePreview');
+const fImageThumb = document.getElementById('fImageThumb');
+const btnClearImage = document.getElementById('btnClearImage');
 const urlRow = document.getElementById('urlRow');
 const commandRow = document.getElementById('commandRow');
 const newCollectionRow = document.getElementById('newCollectionRow');
 const formError = document.getElementById('formError');
+
+// Gambar kustom: file lokal -> canvas 16:9 -> data URL. Tidak ada unggahan jaringan.
+const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+const IMAGE_TARGET_DATA = 400000;
+const IMAGE_MAX_DATA = 500000;
+const IMAGE_STEPS = [[1280, 0.82], [1280, 0.7], [960, 0.7]];
+
+async function encodeImage(file, maxWidth, quality) {
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = objectUrl;
+    await img.decode();
+    const srcW = img.naturalWidth;
+    const srcH = img.naturalHeight;
+    if (!srcW || !srcH) throw new Error('empty image');
+
+    // Crop tengah ke 16:9 supaya hemat dan sesuai kartu.
+    const aspect = 16 / 9;
+    let cropW = srcW;
+    let cropH = Math.round(srcW / aspect);
+    if (cropH > srcH) {
+      cropH = srcH;
+      cropW = Math.round(srcH * aspect);
+    }
+
+    const outW = Math.min(maxWidth, cropW);
+    const outH = Math.round(outW / aspect);
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(
+      img,
+      Math.round((srcW - cropW) / 2), Math.round((srcH - cropH) / 2), cropW, cropH,
+      0, 0, outW, outH,
+    );
+    return canvas.toDataURL('image/webp', quality);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function processImageFile(file) {
+  if (!IMAGE_TYPES.has(file.type)) {
+    throw new Error('Format gambar tidak didukung. Pakai PNG, JPG, WebP, atau GIF.');
+  }
+  if (file.size > IMAGE_MAX_BYTES) {
+    throw new Error('Gambar lebih dari 10 MB. Pilih file yang lebih kecil.');
+  }
+  let data = '';
+  for (const [maxWidth, quality] of IMAGE_STEPS) {
+    data = await encodeImage(file, maxWidth, quality);
+    if (data.length <= IMAGE_TARGET_DATA) return data;
+  }
+  if (data.length <= IMAGE_MAX_DATA) return data;
+  throw new Error('Gambar terlalu besar setelah dikompres. Pilih gambar lain.');
+}
 
 function fillTypeOptions() {
   fType.replaceChildren(...TYPES.map((t) => el('option', { value: t, text: TYPE_LABELS[t] })));
@@ -63,6 +127,14 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
   let typeTouched = mode === 'edit' || !!initial.type;
   const isCommand = initial.type === 'command';
+  let image = typeof initial.image === 'string' ? initial.image : '';
+  let processingImage = false;
+
+  const drawImagePreview = () => {
+    fImagePreview.hidden = !image;
+    if (image) fImageThumb.src = image;
+    else fImageThumb.removeAttribute('src');
+  };
 
   fType.value = initial.type || 'website';
   fTitle.value = initial.title || '';
@@ -99,10 +171,30 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
   fCollection.onchange = () => { newCollectionRow.hidden = fCollection.value !== '__new__'; };
 
+  drawImagePreview();
+  fImage.value = '';
+  fImage.onchange = async () => {
+    const file = fImage.files && fImage.files[0];
+    if (!file) return;
+    showError('');
+    processingImage = true;
+    try {
+      image = await processImageFile(file);
+      drawImagePreview();
+    } catch (err) {
+      showError('Gagal memproses gambar: ' + (err && err.message ? err.message : 'kesalahan tak terduga'));
+    } finally {
+      processingImage = false;
+      fImage.value = '';
+    }
+  };
+  btnClearImage.onclick = () => { image = ''; drawImagePreview(); fImage.value = ''; };
+
   document.getElementById('btnCancelForm').onclick = () => dialog.close();
 
   form.onsubmit = async (e) => {
     e.preventDefault();
+    if (processingImage) return showError('Tunggu gambar selesai diproses.');
     const type = fType.value;
     const url = type === 'command' ? null : fUrl.value.trim();
     const command = type === 'command' ? fCommand.value : null;
@@ -129,8 +221,8 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
     const now = new Date().toISOString();
     const bookmark = mode === 'edit'
-      ? { ...initial, title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, id: initial.id, createdAt: initial.createdAt, updatedAt: now }
-      : { id: newId(), title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, createdAt: now, updatedAt: now };
+      ? { ...initial, title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, image: image || null, id: initial.id, createdAt: initial.createdAt, updatedAt: now }
+      : { id: newId(), title: rawTitle || deriveTitle({ type, url, command }), type, url, command, note, image: image || null, createdAt: now, updatedAt: now };
 
     if (collectionId) bookmark.collectionId = collectionId;
     else if (fCollection.value === '__new__') bookmark.collectionId = null;

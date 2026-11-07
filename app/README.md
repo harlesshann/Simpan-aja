@@ -27,6 +27,10 @@ membuat HP memakai JS lama dari cache.
   Command kolom URL diganti kolom command. **Judul opsional** — bila dikosongkan,
   aplikasi menurunkan judul dari URL/teks command secara lokal (tanpa jaringan);
   judul hasil turunan tetap bisa diedit nanti.
+- **Gambar (opsional):** di form Tambah/Edit kamu bisa memilih file gambar
+  (PNG/JPG/WebP/GIF). Gambar dipotong 16:9 dan dikompres di perangkat menjadi
+  data URL, **tidak diunggah ke server**, lalu dipakai sebagai thumbnail kartu.
+  Bisa diganti atau dihapus lewat `Edit`.
 - **Tipe:** Video, Website, Command, Repo GitHub, Extension, Lainnya.
 - **Search:** mencari di judul, catatan, URL, isi command, dan nama Koleksi.
   Semua kata harus cocok (AND).
@@ -56,6 +60,9 @@ membuat HP memakai JS lama dari cache.
   - `createdAt` asli dipertahankan; tabrakan `id` dengan item berbeda diberi `id` baru.
   - File rusak atau bukan backup SimpanAja ditolak utuh, data lama tidak berubah.
 - Ringkasan hasil: `X ditambahkan, Y dilewati (duplikat), Z Koleksi baru dibuat`.
+- Gambar kustom ikut di backup sebagai data URL (file JSON jadi lebih besar).
+  Gambar yang tidak valid (bukan bitmap data URL atau terlalu besar) dibuang saat
+  import, itemnya tetap masuk.
 
 ## Link 1-tap Muse
 
@@ -79,5 +86,6 @@ di-encode **base64url (UTF-8, tanpa padding)**:
 
 Login, sync antar perangkat, PWA (manifest/service worker), tag, Pin/Favorit,
 auto-fetch deskripsi/konten halaman, analytics, dan impor otomatis dari platform lain.
-Thumbnail hanya diambil dari sumber yang diizinkan (YouTube + favicon Google); isi
-halaman tidak pernah dibaca.
+Thumbnail otomatis hanya diambil dari sumber yang diizinkan (YouTube + favicon Google);
+isi halaman tidak pernah dibaca. Gambar kustom hanya dari file yang kamu pilih sendiri
+dan disimpan lokal.

@@ -15,6 +15,13 @@ export function findDuplicate(bookmarks, candidate, ignoreId) {
 
 const pad = (n) => String(n).padStart(2, '0');
 
+// Hanya gambar kustom hasil proses lokal (data URL bitmap) yang diterima; SVG/HTML ditolak.
+const IMAGE_DATA_RE = /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/]+=*$/;
+const IMAGE_MAX_DATA = 500000;
+export function validImageDataUrl(value) {
+  return typeof value === 'string' && value.length <= IMAGE_MAX_DATA && IMAGE_DATA_RE.test(value);
+}
+
 export function buildExport({ bookmarks, collections }, now = new Date()) {
   const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   return {
@@ -27,6 +34,7 @@ export function buildExport({ bookmarks, collections }, now = new Date()) {
         id: b.id, title: b.title, type: b.type,
         url: b.url ?? null, command: b.command ?? null,
         collectionId: b.collectionId ?? null, note: b.note || '',
+        image: validImageDataUrl(b.image) ? b.image : null,
         createdAt: b.createdAt, updatedAt: b.updatedAt,
       })),
     },
@@ -114,6 +122,7 @@ export function planImport(text, existing, makeId = newId) {
       command: b.type === 'command' ? b.command : null,
       collectionId: b.collectionId ? (idMap.get(b.collectionId) ?? null) : null,
       note: typeof b.note === 'string' ? b.note : '',
+      image: validImageDataUrl(b.image) ? b.image : null,
       createdAt: b.createdAt,
       updatedAt: b.updatedAt,
     };

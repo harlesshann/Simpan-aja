@@ -10,7 +10,10 @@ const CLOSED = {
 
 // Sumber gambar thumbnail per kartu. URL di sini adalah satu-satunya izin jaringan
 // saat render (SPECS §6): YouTube asli + favicon Google, sisanya tile lokal.
+// Gambar kustom user (data URL lokal) selalu menang dan tidak memakai jaringan.
 export function thumbnailFor(bookmark) {
+  if (typeof bookmark.image === 'string' && bookmark.image) return { kind: 'custom', src: bookmark.image };
+
   if (bookmark.type === 'command') return { kind: 'local', label: 'Command' };
 
   const url = bookmark.url;

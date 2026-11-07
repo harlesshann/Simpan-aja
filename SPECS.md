@@ -154,7 +154,7 @@ Susunan halaman (atas ke bawah):
 
 Isi satu kartu (ringkas — detail lengkap ada di modal detail saat kartu diklik):
 
-- \*\*Thumbnail\*\* rasio 16:9 di bagian atas: thumbnail asli YouTube bila video YouTube; favicon situs untuk tipe berbasis link lain; \*\*poster lokal otomatis\*\* (mirip tangkapan layar: bar chrome palsu + hostname + nama platform + judul, dibuat dari URL/judul secara lokal dan deterministik) untuk TikTok/Instagram/Threads; tile lokal berwarna sesuai tipe (inisial label) untuk Command dan fallback saat gambar gagal dimuat. Poster bukan tangkapan halaman asli — konten TikTok/IG/Threads tidak bisa diambil browser (CORS, login wall).
+- \*\*Thumbnail\*\* rasio 16:9 di bagian atas: **gambar kustom dari user** (opsional, file lokal yang dikompres ke 16:9 dan disimpan sebagai data URL — tanpa unggah jaringan) bila ada; selain itu thumbnail asli YouTube bila video YouTube; favicon situs untuk tipe berbasis link lain; \*\*poster lokal otomatis\*\* (mirip tangkapan layar: bar chrome palsu + hostname + nama platform + judul, dibuat dari URL/judul secara lokal dan deterministik) untuk TikTok/Instagram/Threads; tile lokal berwarna sesuai tipe (inisial label) untuk Command dan fallback saat gambar gagal dimuat. Placeholder huruf awal tampil sampai gambar termuat. Poster bukan tangkapan halaman asli — konten TikTok/IG/Threads tidak bisa diambil browser (CORS, login wall).
 
 - Lencana (badge) tipe yang jelas berbeda warna/ikon per tipe + label tipenya.
 

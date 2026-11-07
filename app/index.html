@@ -67,6 +67,15 @@
       <label for="fNote">Catatan (opsional)</label>
       <textarea id="fNote" rows="2"></textarea>
     </div>
+    <div class="field" id="imageRow">
+      <label for="fImage">Gambar (opsional)</label>
+      <input id="fImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+      <div id="fImagePreview" class="image-preview" hidden>
+        <img id="fImageThumb" alt="Pratinjau gambar" />
+        <button type="button" id="btnClearImage" class="btn btn-small">Hapus gambar</button>
+      </div>
+      <p class="field-hint">Gambar disimpan di perangkat ini, bukan diunggah ke server.</p>
+    </div>
     <div class="field">
       <label for="fCollection">Koleksi</label>
       <select id="fCollection"></select>

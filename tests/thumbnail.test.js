@@ -52,6 +52,23 @@ test('thumbLabel: label placeholder selalu ada (siteName -> host -> Bookmark)', 
   assert.equal(thumbLabel({ type: 'other', url: null }, 'Koleksi'), 'Bookmark');
 });
 
+test('gambar kustom menang atas YouTube/poster/favicon', () => {
+  const image = 'data:image/webp;base64,AAAA';
+  assert.deepEqual(
+    thumbnailFor({ type: 'video', url: 'https://youtu.be/abc123', image }),
+    { kind: 'custom', src: image },
+  );
+  assert.deepEqual(
+    thumbnailFor({ type: 'video', url: 'https://www.tiktok.com/@x/video/1', image }),
+    { kind: 'custom', src: image },
+  );
+  assert.deepEqual(
+    thumbnailFor({ type: 'website', url: 'https://web.dev/x', image }),
+    { kind: 'custom', src: image },
+  );
+  assert.equal(thumbLabel({ type: 'website', url: 'https://web.dev/x', image }, ''), 'web.dev');
+});
+
 test('posterSvg: platform + host + judul di dalam SVG', () => {
   const svg = posterSvg({ url: 'https://www.tiktok.com/@x/video/123', title: 'Belajar color grading' }, 'TikTok');
   assert.ok(svg.includes('>TikTok</text>'));

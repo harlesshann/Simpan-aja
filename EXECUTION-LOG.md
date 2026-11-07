@@ -179,3 +179,11 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 - Tidak ada endpoint baru: tetap i.ytimg.com + www.google.com/s2/favicons (SPECS §6.4), tanpa scrape HTML/backend.
 - 	ests/thumbnail.test.js +1 kasus (48 pass, 0 fail); QA qa/final-qa.mjs 14/14.
 - Berkas: pp/src/thumbnail.js, pp/src/render.js, pp/styles.css, 	ests/thumbnail.test.js.
+
+## Gambar thumbnail kustom (manual, lokal)
+
+- Form Tambah/Edit punya field gambar opsional (file lokal). Diproses di perangkat: crop tengah 16:9, resize maks 1280x720, encode WebP (fallback turun kualitas/ukuran), simpan sebagai data URL di IndexedDB (field `image`). Tidak ada unggahan/endpoint baru; SPECS 6.4 tetap.
+- Prioritas thumbnail: gambar kustom > YouTube > poster lokal > favicon > placeholder. Placeholder huruf awal tetap tampil sampai gambar termuat.
+- Backup JSON menyertakan `image`; import hanya menerima bitmap data URL (webp/jpeg/png) <= 500.000 karakter, selain itu dibuang tanpa menggagalkan restore.
+- Tes: 51 pass, 0 fail (`tests/backup.test.js` + `tests/thumbnail.test.js`). QA: `qa/final-qa.mjs` 14/14; `qa/manual-image.mjs` 5/5 (pilih gambar, tolak non-gambar, export, persist reload, hapus).
+- Berkas: `app/index.html`, `app/src/form.js`, `app/src/thumbnail.js`, `app/src/backup.js`, `app/styles.css`, `tests/*`, `qa/manual-image.mjs`, `SPECS.md`, `app/README.md`.

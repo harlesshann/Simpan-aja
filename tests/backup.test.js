@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildExport, planImport, duplicateKey } from '../app/src/backup.js';
+import { buildExport, planImport, duplicateKey, validImageDataUrl } from '../app/src/backup.js';
 
 const state = {
   collections: [{ id: 'c1', name: 'Motion Design', createdAt: '2026-10-01T00:00:00.000Z' }],
@@ -94,4 +94,36 @@ test('import tanpa judul menurunkan judul dari URL', () => {
   const r = planImport(text, { bookmarks: [], collections: [] }, idGen);
   assert.equal(r.ok, true);
   assert.equal(r.addBookmarks[0].title, 'owner/repo');
+});
+
+const IMG = 'data:image/webp;base64,AAAA';
+
+test('validImageDataUrl: hanya bitmap data URL yang wajar', () => {
+  assert.equal(validImageDataUrl(IMG), true);
+  assert.equal(validImageDataUrl('data:image/svg+xml;base64,AAAA'), false);
+  assert.equal(validImageDataUrl('javascript:alert(1)'), false);
+  assert.equal(validImageDataUrl(null), false);
+  assert.equal(validImageDataUrl('data:image/webp;base64,' + 'A'.repeat(500001)), false);
+});
+
+test('export/import membawa gambar kustom dan membuang yang tidak valid', () => {
+  const withImage = {
+    collections: [],
+    bookmarks: [{
+      id: 'b9', title: 'Ada gambar', type: 'website', url: 'https://web.dev/x',
+      command: null, collectionId: null, note: '', image: IMG,
+      createdAt: '2026-11-01T00:00:00.000Z', updatedAt: '2026-11-01T00:00:00.000Z',
+    }],
+  };
+  const { data } = buildExport(withImage, new Date());
+  assert.equal(data.bookmarks[0].image, IMG);
+
+  const r = planImport(JSON.stringify(data), { bookmarks: [], collections: [] }, idGen);
+  assert.equal(r.ok, true);
+  assert.equal(r.addBookmarks[0].image, IMG);
+
+  data.bookmarks[0].image = 'data:image/svg+xml;base64,AAAA';
+  const r2 = planImport(JSON.stringify(data), { bookmarks: [], collections: [] }, idGen);
+  assert.equal(r2.ok, true);
+  assert.equal(r2.addBookmarks[0].image, null);
 });
