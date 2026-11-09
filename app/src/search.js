@@ -1,6 +1,7 @@
 export function filterBookmarks(bookmarks, collectionsById, opts = {}) {
-  const { query = '', type = 'all', collection = 'all' } = opts;
+  const { query = '', type = 'all', collection = 'all', sort = 'new' } = opts;
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const dir = sort === 'old' ? 1 : -1;
 
   return bookmarks
     .filter((b) => {
@@ -15,7 +16,7 @@ export function filterBookmarks(bookmarks, collectionsById, opts = {}) {
       }
       return true;
     })
-    .sort((a, b) =>
-      b.createdAt.localeCompare(a.createdAt) ||
-      (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    .sort((a, b) => dir * (
+      a.createdAt.localeCompare(b.createdAt) ||
+      (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)));
 }

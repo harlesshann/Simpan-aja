@@ -30,8 +30,6 @@
 
 <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
 
-<p class="local-note" role="note">Data tersimpan di perangkat ini. Masuk dengan Google untuk sinkron antar-device; Export JSON tetap jalan backup-nya.</p>
-
 <main class="layout">
   <aside class="sidebar" id="appSidebar">
     <div class="sidebar-head">
@@ -49,7 +47,12 @@
   <section class="content">
     <div class="search-wrap">
       <label class="visually-hidden" for="search">Cari bookmark</label>
-      <input id="search" class="search" type="search" placeholder="Cari judul, catatan, command, Koleksi..." autocomplete="off" />
+      <div class="search-row">
+        <input id="search" class="search" type="search" placeholder="Cari judul, catatan, command, Koleksi..." autocomplete="off" />
+        <button id="btnSort" class="btn btn-sort" type="button" aria-pressed="false" aria-label="Urutkan: terbaru dulu" title="Urutkan: terbaru dulu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/></svg>
+        </button>
+      </div>
     </div>
     <div id="typeChips" class="chips" role="group" aria-label="Filter tipe"></div>
     <div id="grid" class="grid"></div>

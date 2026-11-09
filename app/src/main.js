@@ -19,6 +19,7 @@ import { initSync } from './sync.js';
 const els = {
   total: document.getElementById('totalCount'),
   search: document.getElementById('search'),
+  sort: document.getElementById('btnSort'),
   chips: document.getElementById('typeChips'),
   grid: document.getElementById('grid'),
   empty: document.getElementById('emptyState'),
@@ -33,7 +34,7 @@ const els = {
   syncDot: document.getElementById('syncStatus'),
 };
 
-const state = { query: '', type: 'all', collection: 'all' };
+const state = { query: '', type: 'all', collection: 'all', sort: 'new' };
 let bookmarks = [];
 let collections = [];
 
@@ -84,6 +85,13 @@ function renderChips() {
     b.setAttribute('aria-pressed', String(state.type === r.key));
     return b;
   }));
+}
+
+function paintSort() {
+  const oldest = state.sort === 'old';
+  els.sort.setAttribute('aria-pressed', String(oldest));
+  els.sort.title = oldest ? 'Urutan: terdahulu dulu' : 'Urutan: terbaru dulu';
+  els.sort.setAttribute('aria-label', els.sort.title);
 }
 
 function renderEmpty(total) {
@@ -207,6 +215,7 @@ async function render() {
 
   renderCollectionFilter(els.collections, collections, counts, state.collection);
   renderChips();
+  paintSort();
 }
 
 function openAdd(initial = {}, error = '') {
@@ -287,6 +296,7 @@ async function importFile(file) {
 function wire() {
   document.getElementById('btnAdd').onclick = () => openAdd();
   els.search.oninput = () => { state.query = els.search.value; render(); };
+  els.sort.onclick = () => { state.sort = state.sort === 'new' ? 'old' : 'new'; render(); };
 
   els.chips.onclick = (e) => {
     const chip = e.target.closest('[data-type]');

@@ -109,14 +109,6 @@ h1, h2, h3 {
   box-shadow: var(--shadow-sm); padding: 6px 10px; margin-right: 4px;
 }
 
-.local-note {
-  margin: 0; padding: 10px clamp(14px, 4vw, 34px);
-  background: var(--charcoal); color: var(--sage);
-  font-family: var(--mono); font-size: 12px; font-weight: 600;
-  letter-spacing: .01em;
-  border-bottom: var(--bw) solid var(--black);
-}
-
 /* ---------- buttons ---------- */
 .btn {
   min-height: 44px; padding: 0 14px;
@@ -250,6 +242,8 @@ h1, h2, h3 {
 
 /* ---------- search + chips ---------- */
 .search-wrap { margin-bottom: 14px; }
+.search-row { display: flex; gap: 8px; align-items: stretch; }
+.search-row .search { flex: 1 1 auto; width: auto; min-width: 0; }
 .search {
   width: 100%; min-height: 54px; padding: 0 16px;
   font: 500 16px/1 var(--sans);
@@ -259,6 +253,11 @@ h1, h2, h3 {
 }
 .search::placeholder { color: #5c665f; font-weight: 500; }
 .search:focus-visible { border-color: var(--black); }
+
+.btn-sort { flex: 0 0 auto; width: 54px; min-height: 54px; padding: 0; }
+.btn-sort svg { width: 22px; height: 22px; }
+.btn-sort[aria-pressed="true"] { background: var(--charcoal); color: var(--yellow); }
+.btn-sort[aria-pressed="true"]:hover { background: var(--black); transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--black); }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
 @media (max-width: 639px) {
