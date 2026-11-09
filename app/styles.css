@@ -384,6 +384,9 @@ h1, h2, h3 {
 .field textarea { min-height: 60px; resize: vertical; font-family: var(--mono); }
 .form-error { margin: 0; color: var(--danger); font-weight: 700; font-size: 13px; }
 .field-hint { margin: 0; font-size: 12px; color: var(--muted); }
+.image-url-row { display: flex; gap: 8px; align-items: stretch; }
+.image-url-row input { flex: 1 1 auto; width: auto; min-width: 0; }
+.image-url-row .btn { flex: 0 0 auto; }
 .image-preview { display: flex; align-items: center; gap: 10px; }
 .image-preview img { width: 128px; aspect-ratio: 16 / 9; object-fit: cover; border: 2px solid var(--black); border-radius: var(--radius-sm); background: var(--surface-2); }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }

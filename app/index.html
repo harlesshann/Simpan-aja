@@ -88,6 +88,11 @@
     <div class="field" id="imageRow">
       <label for="fImage">Gambar (opsional)</label>
       <input id="fImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+      <label class="visually-hidden" for="fImageUrl">URL gambar</label>
+      <div class="image-url-row">
+        <input id="fImageUrl" type="url" inputmode="url" placeholder="atau tempel URL gambar…" autocomplete="off" />
+        <button type="button" id="btnFetchImage" class="btn btn-small">Ambil</button>
+      </div>
       <div id="fImagePreview" class="image-preview" hidden>
         <img id="fImageThumb" alt="Pratinjau gambar" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
         <button type="button" id="btnClearImage" class="btn btn-small">Hapus gambar</button>

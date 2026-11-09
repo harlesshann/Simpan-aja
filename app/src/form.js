@@ -2,6 +2,7 @@ import { TYPES, TYPE_LABELS, COLLECTION_COLORS, DEFAULT_COLLECTION_COLOR, safeCo
 import { detectType, deriveTitle } from './detect.js';
 import { findDuplicate } from './backup.js';
 import { newId } from './id.js';
+import { fetchImageBlob } from './fetchimage.js';
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
@@ -27,6 +28,8 @@ const fNote = document.getElementById('fNote');
 const fCollection = document.getElementById('fCollection');
 const fNewCollection = document.getElementById('fNewCollection');
 const fImage = document.getElementById('fImage');
+const fImageUrl = document.getElementById('fImageUrl');
+const btnFetchImage = document.getElementById('btnFetchImage');
 const fImagePreview = document.getElementById('fImagePreview');
 const fImageThumb = document.getElementById('fImageThumb');
 const btnClearImage = document.getElementById('btnClearImage');
@@ -79,16 +82,16 @@ async function encodeImage(file, maxWidth, quality) {
   }
 }
 
-async function processImageFile(file) {
-  if (!IMAGE_TYPES.has(file.type)) {
+async function processImageBlob(blob) {
+  if (!IMAGE_TYPES.has(blob.type)) {
     throw new Error('Format gambar tidak didukung. Pakai PNG, JPG, WebP, atau GIF.');
   }
-  if (file.size > IMAGE_MAX_BYTES) {
+  if (blob.size > IMAGE_MAX_BYTES) {
     throw new Error('Gambar lebih dari 10 MB. Pilih file yang lebih kecil.');
   }
   let data = '';
   for (const [maxWidth, quality] of IMAGE_STEPS) {
-    data = await encodeImage(file, maxWidth, quality);
+    data = await encodeImage(blob, maxWidth, quality);
     if (data.length <= IMAGE_TARGET_DATA) return data;
   }
   if (data.length <= IMAGE_MAX_DATA) return data;
@@ -173,13 +176,14 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
 
   drawImagePreview();
   fImage.value = '';
+  fImageUrl.value = '';
   fImage.onchange = async () => {
     const file = fImage.files && fImage.files[0];
     if (!file) return;
     showError('');
     processingImage = true;
     try {
-      image = await processImageFile(file);
+      image = await processImageBlob(file);
       drawImagePreview();
     } catch (err) {
       showError('Gagal memproses gambar: ' + (err && err.message ? err.message : 'kesalahan tak terduga'));
@@ -188,7 +192,27 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
       fImage.value = '';
     }
   };
-  btnClearImage.onclick = () => { image = ''; drawImagePreview(); fImage.value = ''; };
+
+  // Ambil thumbnail dari URL lewat Edge Function; hasilnya tetap data URL.
+  btnFetchImage.onclick = async () => {
+    const url = fImageUrl.value.trim();
+    if (!url) return showError('Tempel URL gambar dulu.');
+    showError('');
+    processingImage = true;
+    btnFetchImage.disabled = true;
+    try {
+      const blob = await fetchImageBlob(url);
+      image = await processImageBlob(blob);
+      drawImagePreview();
+    } catch (err) {
+      showError('Gagal mengambil gambar dari URL: ' + (err && err.message ? err.message : 'kesalahan tak terduga'));
+    } finally {
+      processingImage = false;
+      btnFetchImage.disabled = false;
+    }
+  };
+
+  btnClearImage.onclick = () => { image = ''; drawImagePreview(); fImage.value = ''; fImageUrl.value = ''; };
 
   document.getElementById('btnCancelForm').onclick = () => dialog.close();
 

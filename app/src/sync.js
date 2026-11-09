@@ -13,6 +13,16 @@ export const PULL_PAGE = 200;
 const EPOCH = '1970-01-01T00:00:00.000Z';
 const STORES = ['collections', 'bookmarks'];
 
+// Client supabase-js dipakai bersama fitur lain (mis. ambil gambar dari URL).
+// Diisi saat initSync berhasil membuat client; tetap null saat sync nonaktif.
+let authClient = null;
+
+export async function getAccessToken() {
+  if (!authClient) return null;
+  const { data } = await authClient.auth.getSession();
+  return data && data.session ? data.session.access_token : null;
+}
+
 /* ---------------------------------------------------------------
    Fungsi murni (dites tanpa jaringan / IndexedDB)
 --------------------------------------------------------------- */
@@ -102,6 +112,7 @@ export async function initSync({ onStatus = () => {}, onRemoteChange = () => {} 
     client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     });
+    authClient = client;
   } catch {
     state.error = true;
     notify();
