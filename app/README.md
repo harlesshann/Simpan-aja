@@ -128,4 +128,6 @@ halaman, analytics, dan impor otomatis dari platform lain.
 Thumbnail otomatis hanya diambil dari sumber yang diizinkan (YouTube + favicon Google);
 isi halaman tidak pernah dibaca. Gambar kustom hanya dari file yang kamu pilih sendiri.
 Jaringan lain hanya dipakai saat kamu menekan `Masuk` (muat SDK dari `esm.sh` +
-project Supabase Anda).
+project Supabase Anda) dan untuk memuat typeface tampilan (`Cabinet Grotesk` +
+`Satoshi` dari `fonts.cdnfonts.com`). Bila font gagal dimuat atau kamu offline,
+aplikasi otomatis memakai font sistem — tetap terpakai penuh.

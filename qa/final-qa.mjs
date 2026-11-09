@@ -430,6 +430,8 @@ const APPROVED = [
   // Sinkron (opsional, §6.4): SDK supabase-js dari esm.sh + project Supabase milik user.
   /^https:\/\/esm\.sh\//,
   /^(https|wss?):\/\/[a-z0-9-]+\.supabase\.co\//,
+  // Typeface DESIGN.md: Cabinet Grotesk + Satoshi dari cdnfonts.
+  /^https:\/\/fonts\.cdnfonts\.com\//,
 ];
 const external = requests.filter((u) => !u.startsWith('http://localhost:8000') && !u.startsWith('data:'));
 const unexpected = external.filter((u) => !APPROVED.some((re) => re.test(u)));

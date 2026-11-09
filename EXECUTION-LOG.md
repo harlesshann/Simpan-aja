@@ -260,3 +260,6 @@ Rencana: `PLAN.md`. Spec: `SPECS.md`. Bukan repo git (sesuai spec), jadi tak ada
 
 - Fix akar masalah: PK server global `id` -> komposit `(user_id, id)`. Import backup dari akun/perangkat lain mempertahankan id lama; dengan PK global itu menabrak baris milik akun lain -> RLS menolak, lalu recovery menghapus cache -> data import hilang. Sekarang id unik per pengguna; `flush` mengirim `user_id` eksplisit + `onConflict: 'user_id,id'`. Recovery reaktif dihapus (tidak lagi perlu, dan mencegah kehilangan data). Migrasi idempoten ditambahkan ke `supabase/schema.sql` (blok `do  ... `). Tes 58 pass, QA 14/14.
 
+
+
+- Restyle sesuai DESIGN.md (Neo-Brutalist SaaS): palet kuning `#ffe17c`/charcoal `#171e19`/sage `#b7c6c2`, pola titik 32px di latar, kartu putih, border 2px hitam, shadow offset tanpa blur, sistem hover-press (base 4px -> hover translate(2,2)/2px -> active translate(4,4)/0). Typeface Cabinet Grotesk (display) + Satoshi (body) dari `fonts.cdnfonts.com` via `<link>` + `theme-color`; fallback font sistem saat offline. Semua hook selector/JS (`var(--ink)`, `var(--surface-2)`, `--folder:<hex>`) dipertahankan. Tes 58 pass, QA 14/14, `impeccable detect` bersih kecuali `hard-offset-shadow` yang memang diminta DESIGN.md (brief dipegang).
