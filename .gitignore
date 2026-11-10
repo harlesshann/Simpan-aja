@@ -3,6 +3,7 @@
 
 node_modules/
 .agents/
+supabase/.temp/
 *.log
 Thumbs.db
 Desktop.ini

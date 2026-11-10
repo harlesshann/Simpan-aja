@@ -6,11 +6,12 @@ import { openBookmarkForm, openCollectionManager } from './form.js';
 import { newId } from './id.js';
 import { renderDetailPage, renderDetailNotFound } from './detail.js';
 import {
-  listBookmarks, listCollections, putBookmark, deleteBookmark, putCollection, deleteCollectionAndDetach,
+  listBookmarks, listCollections, putBookmark, deleteBookmark, putCollection, deleteCollectionAndDetach, getBookmarkRow,
 } from './db.js';
 import { buildExport, planImport } from './backup.js';
 import { decodeAddPayload } from './codec.js';
 import { initSync } from './sync.js';
+import { autoThumbnail, removeThumbnail } from './autothumb.js';
 
 /* ----------------------------------------------------------------
    State hidup di IndexedDB lewat db.js; export/import lewat backup.js.
@@ -125,6 +126,7 @@ function handlers() {
     onDelete: async (b) => {
       if (!window.confirm(`Hapus "${b.title || b.url || b.command}"?`)) return false;
       await deleteBookmark(b.id);
+      void removeThumbnail(b.image);
       await render();
       if (itemIdFromHash()) closeItem(); else route();
       toast('Item dihapus.');
@@ -218,6 +220,21 @@ async function render() {
   paintSort();
 }
 
+// Auto-thumbnail di belakang: setelah tersimpan, server cari gambar halaman
+// lalu simpan ke Storage dan `image` diperbarui. Gagal / belum login -> diam,
+// kartu memakai thumbnail bawaan. Jangan menimpa gambar pilihan user.
+async function autoThumbInBackground(id) {
+  const before = await getBookmarkRow(id);
+  if (!before || before.image) return;
+  const url = await autoThumbnail(before);
+  if (!url) return;
+  const latest = await getBookmarkRow(id);
+  if (!latest || latest.image) return;
+  await putBookmark({ ...latest, image: url });
+  await render();
+  if (itemIdFromHash()) route();
+}
+
 function openAdd(initial = {}, error = '') {
   openBookmarkForm({
     mode: 'add',
@@ -228,6 +245,7 @@ function openAdd(initial = {}, error = '') {
     onSave: async (b) => {
       await resolveNewCollection(b);
       await putBookmark(b);
+      void autoThumbInBackground(b.id);
       await render();
       toast('Item disimpan.');
     },
@@ -243,6 +261,7 @@ function openEdit(b) {
     onSave: async (next) => {
       await resolveNewCollection(next);
       await putBookmark(next);
+      if (next.image !== b.image) void removeThumbnail(b.image);
       await render();
       if (itemIdFromHash()) route();
       toast('Perubahan disimpan.');
