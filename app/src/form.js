@@ -193,6 +193,29 @@ export function openBookmarkForm({ mode = 'add', initial = {}, collections = [],
     }
   };
 
+  // Tempel gambar langsung dari clipboard (Ctrl+V) di mana pun dalam dialog.
+  // Hanya menangkap item berupa gambar; teks tetap ditempel normal ke input.
+  dialog.onpaste = async (e) => {
+    const dt = e.clipboardData;
+    if (!dt) return;
+    const item = Array.from(dt.items || [])
+      .find((it) => it.kind === 'file' && it.type.startsWith('image/'));
+    const file = item ? item.getAsFile() : null;
+    if (!file) return;
+    e.preventDefault();
+    if (processingImage) return;
+    showError('');
+    processingImage = true;
+    try {
+      image = await processImageBlob(file);
+      drawImagePreview();
+    } catch (err) {
+      showError('Gagal memproses gambar: ' + (err && err.message ? err.message : 'kesalahan tak terduga'));
+    } finally {
+      processingImage = false;
+    }
+  };
+
   // Ambil thumbnail dari URL lewat Edge Function; hasilnya tetap data URL.
   btnFetchImage.onclick = async () => {
     const url = fImageUrl.value.trim();
